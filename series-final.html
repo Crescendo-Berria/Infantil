@@ -171,7 +171,7 @@
         <label class="block text-xs font-bold text-slate-600 mb-1">Longitud de la Serie:</label>
         <div class="grid grid-cols-4 gap-2" id="length-options">
           <button data-len="2" class="opt-btn py-1.5 rounded-xl border-2 border-slate-200 font-bold text-xs">2</button>
-          <button data-len="3" class="opt-btn py-1.5 rounded-xl border-2 border-sky-500 bg-sky-50 text-sky-700 font-bold text-xs">3</button>
+          <button data-len="3" class="opt-btn py-1.5 rounded-xl border-2 border-slate-200 font-bold text-xs">3</button>
           <button data-len="4" class="opt-btn py-1.5 rounded-xl border-2 border-slate-200 font-bold text-xs">4</button>
           <button data-len="5" class="opt-btn py-1.5 rounded-xl border-2 border-slate-200 font-bold text-xs">5</button>
         </div>
@@ -180,7 +180,7 @@
       <div>
         <label class="block text-xs font-bold text-slate-600 mb-1">Dirección de la Serie:</label>
         <div class="grid grid-cols-2 gap-2" id="dir-options">
-          <button data-dir="asc" class="opt-btn py-1.5 rounded-xl border-2 border-sky-500 bg-sky-50 text-sky-700 font-bold text-xs">Ascendente (+)</button>
+          <button data-dir="asc" class="opt-btn py-1.5 rounded-xl border-2 border-slate-200 font-bold text-xs">Ascendente (+)</button>
           <button data-dir="desc" class="opt-btn py-1.5 rounded-xl border-2 border-slate-200 font-bold text-xs">Descendente (-)</button>
         </div>
       </div>
@@ -188,7 +188,7 @@
       <div>
         <label class="block text-xs font-bold text-slate-600 mb-1">Salto de Números:</label>
         <div class="grid grid-cols-2 gap-2" id="step-options">
-          <button data-step="1" id="step-1-btn" class="opt-btn py-1.5 rounded-xl border-2 border-sky-500 bg-sky-50 text-sky-700 font-bold text-xs">De 1 en 1 (+1)</button>
+          <button data-step="1" id="step-1-btn" class="opt-btn py-1.5 rounded-xl border-2 border-slate-200 font-bold text-xs">De 1 en 1 (+1)</button>
           <button data-step="2" id="step-2-btn" class="opt-btn py-1.5 rounded-xl border-2 border-slate-200 font-bold text-xs">De 2 en 2 (+2)</button>
         </div>
       </div>
@@ -196,7 +196,7 @@
       <div>
         <label class="block text-xs font-bold text-slate-600 mb-1">Modo de Juego:</label>
         <div class="grid grid-cols-3 gap-2" id="mode-options">
-          <button data-mode="free" class="opt-btn py-1.5 rounded-xl border-2 border-sky-500 bg-sky-50 text-sky-700 font-bold text-xs">Libre</button>
+          <button data-mode="free" class="opt-btn py-1.5 rounded-xl border-2 border-slate-200 font-bold text-xs">Libre</button>
           <button data-mode="5" class="opt-btn py-1.5 rounded-xl border-2 border-slate-200 font-bold text-xs">5 Preg.</button>
           <button data-mode="10" class="opt-btn py-1.5 rounded-xl border-2 border-slate-200 font-bold text-xs">10 Preg.</button>
         </div>
@@ -233,6 +233,16 @@
       step: 1,
       mode: 'free'
     };
+
+    // Cargar ajustes guardados previamente en el navegador (si existen)
+    const savedConfig = localStorage.getItem('seriesMathConfig');
+    if (savedConfig) {
+      try {
+        config = JSON.parse(savedConfig);
+      } catch (e) {
+        console.error('Error cargando configuración guardada', e);
+      }
+    }
 
     let score = 0;
     let currentRound = 1;
@@ -317,7 +327,6 @@
     }
 
     function initRound() {
-      // Limpiar confeti previo si existía
       confetti.reset();
 
       const feedback = document.getElementById('feedback-message');
@@ -532,7 +541,6 @@
         
         playSuccessSound();
 
-        // Lanzamiento festivo de confeti al acertar
         confetti({ particleCount: 60, spread: 80, origin: { y: 0.65 } });
 
         document.getElementById('btn-check').classList.add('hidden');
@@ -598,7 +606,12 @@
     });
 
     function syncSettingsUI() {
-      // Ajustar estado visual según configuración
+      // Marcar visualmente los botones según el objeto config actual
+      updateGroupActiveState('length-options', 'data-len', config.length);
+      updateGroupActiveState('dir-options', 'data-dir', config.direction);
+      updateGroupActiveState('step-options', 'data-step', config.step);
+      updateGroupActiveState('mode-options', 'data-mode', config.mode);
+
       const step2Btn = document.getElementById('step-2-btn');
       if (config.length === 5) {
         step2Btn.disabled = true;
@@ -609,7 +622,20 @@
       }
     }
 
-    function setupOptionGroup(containerId, key) {
+    function updateGroupActiveState(containerId, dataAttr, activeVal) {
+      const container = document.getElementById(containerId);
+      container.querySelectorAll('.opt-btn').forEach(b => {
+        if (b.disabled) return;
+        const val = b.getAttribute(dataAttr);
+        if (val == activeVal || (isNaN(val) && val == activeVal) || (String(val) === String(activeVal))) {
+          b.className = "opt-btn py-1.5 rounded-xl border-2 border-sky-500 bg-sky-50 text-sky-700 font-bold text-xs";
+        } else {
+          b.className = "opt-btn py-1.5 rounded-xl border-2 border-slate-200 font-bold text-xs";
+        }
+      });
+    }
+
+    function setupOptionGroup(containerId, key, dataAttr) {
       const container = document.getElementById(containerId);
       container.addEventListener('click', (e) => {
         const btn = e.target.closest('.opt-btn');
@@ -618,37 +644,24 @@
         let val = btn.dataset.len || btn.dataset.dir || btn.dataset.step || btn.dataset.mode;
         if (!isNaN(parseInt(val))) val = parseInt(val);
 
-        // Control de compatibilidad: si selecciona 5 casillas, forzar salto de 1 en 1
-        if (key === 'length' && val === 5) {
+        if (key === 'length' && val === 5 && config.step === 2) {
           config.step = 1;
-          const stepBtns = document.querySelectorAll('#step-options .opt-btn');
-          stepBtns.forEach(b => {
-            b.className = "opt-btn py-1.5 rounded-xl border-2 border-slate-200 font-bold text-xs";
-          });
-          const step1Btn = document.getElementById('step-1-btn');
-          step1Btn.className = "opt-btn py-1.5 rounded-xl border-2 border-sky-500 bg-sky-50 text-sky-700 font-bold text-xs";
         }
 
         config[key] = val;
-
-        container.querySelectorAll('.opt-btn').forEach(b => {
-          if (!b.disabled) {
-            b.className = "opt-btn py-1.5 rounded-xl border-2 border-slate-200 font-bold text-xs";
-          }
-        });
-
-        btn.className = "opt-btn py-1.5 rounded-xl border-2 border-sky-500 bg-sky-50 text-sky-700 font-bold text-xs";
-        
         syncSettingsUI();
       });
     }
 
-    setupOptionGroup('length-options', 'length');
-    setupOptionGroup('dir-options', 'direction');
-    setupOptionGroup('step-options', 'step');
-    setupOptionGroup('mode-options', 'mode');
+    setupOptionGroup('length-options', 'length', 'data-len');
+    setupOptionGroup('dir-options', 'direction', 'data-dir');
+    setupOptionGroup('step-options', 'step', 'data-step');
+    setupOptionGroup('mode-options', 'mode', 'data-mode');
 
     document.getElementById('btn-save-settings').addEventListener('click', () => {
+      // Guardar permanentemente en el navegador
+      localStorage.setItem('seriesMathConfig', JSON.stringify(config));
+
       settingsModal.classList.add('hidden');
       score = 0;
       currentRound = 1;
@@ -656,6 +669,8 @@
       initRound();
     });
 
+    // Sincronizar UI de botones la primera vez para que refleje los ajustes cargados
+    syncSettingsUI();
     initRound();
   </script>
 </body>
