@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#38bdf8">
+  <meta name="description" content="Juego de series numéricas para Educación Infantil, adaptable a pizarras digitales interactivas.">
+  <title>Series Matemáticas</title>
+  <style>
+    :root {
+      --navy:#07345e; --blue:#069be8; --sky:#caf2ff; --line:#8edbfa;
+      --tile:clamp(54px, min(7.3vw, 10vh), 116px);
+      --gap:clamp(6px, 1.05vh, 14px);
+      --face: "Trebuchet MS", "Arial Rounded MT Bold", system-ui, sans-serif;
+    }
+    *, *::before, *::after { box-sizing:border-box; }
+    html,body { width:100%; height:100%; margin:0; }
+    html { overscroll-behavior:none; }
+    body { color:var(--navy); background:#63c9fb; font-family:var(--face); overflow:hidden; -webkit-tap-highlight-color:transparent; }
+    button { font:inherit; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+    button:focus-visible,.tile:focus-visible,.slot:focus-visible { outline:5px solid #ffc72e; outline-offset:3px; }
+    [hidden] {display:none!important;}
+    .stage { position:relative; isolation:isolate; width:100vw; height:100vh; height:100dvh; overflow:hidden; }
+    .landscape { position:absolute; inset:0; width:100%; height:100%; z-index:-1; pointer-events:none; }
+    .stage:after { content:""; position:absolute; inset:0; z-index:-1; pointer-events:none; background:radial-gradient(ellipse 47% 56% at 50% 43%,rgba(235,249,255,.17),transparent 90%); }
+            .shell-header { position:absolute; top:2.2%; left:50%; transform:translateX(-50%); width:min(74vw,1040px); height:clamp(62px,10.5vh,112px); padding:0 clamp(12px,1.5vw,26px); display:flex; align-items:center; justify-content:space-between; gap:14px; border:clamp(3px,.32vw,5px) solid #a8e4ff; border-radius:999px; background:linear-gradient(180deg,#fff 0%,#f9feff 75%,#e3f8ff 100%); box-shadow:0 7px 0 rgba(5,116,190,.12), 0 12px 30px #1e7ba444; z-index:5; }
+    .header-brand { flex:1; text-align:center; font-size:clamp(19px,min(2.7vw,4.6vh),42px); font-weight:900; letter-spacing:-.035em; line-height:1.03; white-space:nowrap; }
+    .header-buttons { display:flex; align-items:center; gap:clamp(6px,.8vw,14px); }
+    .round-control { width:clamp(46px,min(5.2vw,8.4vh),84px); height:clamp(46px,min(5.2vw,8.4vh),84px); display:grid; place-items:center; flex-shrink:0; border:3px solid #8fceef; border-radius:50%; color:var(--navy); background:linear-gradient(#e9f8ff,#bee7ff); box-shadow:0 3px 0 #61add9; transition:transform .12s; }
+    .round-control:active { transform:translateY(3px); box-shadow:none; }
+    .round-control svg { width:55%;height:55%;stroke:currentColor;fill:none;stroke-width:2.6;stroke-linejoin:round;stroke-linecap:round; }
+    .score-pill {display:flex;align-items:center;gap:clamp(4px,.6vw,12px);border-radius:999px;background:linear-gradient(#fff6c8,#ffe58e);border:3px solid #ffc83d;padding:0 clamp(12px,1.4vw,23px);height:clamp(44px,7.1vh,75px);font-size:clamp(22px,2.1vw,35px);font-weight:900;white-space:nowrap;box-shadow:0 3px 0 #e9ae29;}
+    .score-pill svg {width:1.13em;height:1.13em;stroke:#965710;stroke-width:2.5;fill:#ffd333;}
+    .stage:not(.playing) .shell-header {left:auto;right:clamp(14px,3vw,55px);transform:none;width:auto;height:auto;min-height:70px;justify-content:flex-end;background:transparent;border:none;box-shadow:none;padding:0;}
+    .stage:not(.playing) .header-brand {display:none;}
+    .hero {position:absolute;inset:15% 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(28px,5vh,65px);padding-bottom:12vh;text-align:center;z-index:2;}
+    .hero-title {font-weight:900;letter-spacing:-.055em;font-size:clamp(45px,min(6.3vw,10vh),102px);line-height:1.05;max-width:90vw;padding:clamp(22px,4vh,44px) clamp(35px,5vw,95px);border:5px solid #b8e9ff;border-radius:40% 38% 42% 35% / 40% 44% 40% 43%;color:#063965;text-shadow:0 2px 0 white;background:linear-gradient(#fff,#f7feff);box-shadow:0 12px 0 #68b9e244,0 15px 32px #22688c33;}
+    .hero-play { width:clamp(104px,min(13vw,19vh),185px);height:clamp(104px,min(13vw,19vh),185px);border:8px solid white;border-radius:50%;display:grid;place-items:center;color:white;background:linear-gradient(#75e528,#18ba10);box-shadow:0 10px 0 #078d13,0 16px 20px #075d3c55;font-size:clamp(53px,7.3vw,110px);line-height:1;transition:transform .15s; }
+    .hero-play span {transform:translateX(8%);filter:drop-shadow(0 3px 2px #2f6b30);}
+    .hero-play:hover {transform:scale(1.045)}
+    .hero-play:active {transform:translateY(7px);box-shadow:0 3px 0 #078d13;}
+    .hero-digits {display:flex;gap:12px;position:absolute;right:10%;bottom:12%;transform:rotate(-9deg);pointer-events:none;}
+    .hero-digits span {display:grid;place-items:center;color:white;font-weight:900;font-size:clamp(28px,3vw,48px);width:clamp(52px,5vw,78px);aspect-ratio:1;border:4px solid white;border-radius:20px;box-shadow:0 6px 0 #0002;}
+    .hero-digits span:nth-child(1){background:#ffa90a;transform:rotate(-7deg)}.hero-digits span:nth-child(2){background:#00abef;transform:translateY(-15px)}.hero-digits span:nth-child(3){background:#a849e5;transform:rotate(10deg)}
+    .game-screen { position:absolute; left:50%; top:15.1%; bottom:3.1%; width:min(68vw,1020px); transform:translateX(-50%); z-index:2; }
+    .game-card {height:100%;padding:clamp(12px,2.25vh,28px) clamp(15px,2vw,30px); display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:clamp(5px,.8vh,13px);background:linear-gradient(145deg,#fff,#fbfeff);border:clamp(5px,.48vw,8px) solid #b7e7fb;border-radius:clamp(25px,3vw,50px);box-shadow:0 12px 0 #59bcdd55,0 13px 30px #075b9e2d; }
+    .instruction {margin:0;max-width:100%;text-align:center;line-height:1.22;font-size:clamp(16px,min(1.7vw,2.9vh),30px);font-weight:900;}
+    .instruction svg{vertical-align:middle;width:1.3em;height:1.3em;stroke:#a05b00;stroke-width:2.5;fill:#ffcf28;margin-right:6px;}
+    .progress {height:clamp(10px,2vh,20px);width:65%;display:flex;align-items:center;justify-content:center;gap:12px;flex-shrink:0;}
+    .progress-dot {height:clamp(10px,1.6vh,18px);width:clamp(10px,1.6vh,18px);background:#d4e3ec;border:2px solid white;box-shadow:0 1px 2px #164b6a33;border-radius:50%;}
+    .progress-dot.done {background:#2ac769;}.progress-dot.current{background:#25bdfb;border-color:#fff;transform:scale(1.27)}
+    .slots {width:100%;display:flex;justify-content:center;align-items:flex-end;padding-bottom:clamp(16px,2.2vh,28px);gap:clamp(6px,1vw,18px);flex:1 1 auto;min-height:calc(var(--tile) + 6px);}
+    .slot {flex:0 0 auto; width:var(--tile);height:var(--tile);border:clamp(3px,.33vw,5px) dashed #47b4ff;background:#fcfeff;border-radius:22%;display:grid;place-items:center;position:relative;touch-action:none;transition:border-color .12s,background .12s,transform .12s; }
+    .slot:not(.fixed) {cursor:pointer;}
+    .slot.fixed {border:clamp(3px,.33vw,5px) solid #147fec;background:#ddf3ff;}
+    .slot.highlight {background:#dbf4ff;border-color:#009cf1;transform:scale(1.06)}
+    .slot.selected-slot {border-color:#ffb500;background:#fff7d6}
+    .tile {width:var(--tile);height:var(--tile);border:clamp(3px,.28vw,5px) solid #fff;border-radius:22%;display:grid;place-items:center; flex:0 0 auto; font-weight:900;font-size:clamp(29px,min(4vw,6vh),61px);line-height:1;color:#fff;text-shadow:0 2px 2px #0003;box-shadow:0 5px 0 #185c8766,0 8px 12px #13344b20;touch-action:none;user-select:none;-webkit-user-select:none;outline-offset:2px;transition:transform .1s,filter .12s; }
+    .tile:active{transform:translateY(3px)}
+    .tile[data-tone="0"]{background:linear-gradient(#40db8f,#02b56b)}
+    .tile[data-tone="1"]{background:linear-gradient(#49bbff,#078fed)}
+    .tile[data-tone="2"]{background:linear-gradient(#ffcd31,#ff9800)}
+    .tile[data-tone="3"]{background:linear-gradient(#a99aff,#6864eb)}
+    .tile[data-tone="4"]{background:linear-gradient(#f47dee,#ac41d8)}
+    .tile[data-tone="5"]{background:linear-gradient(#3dd6d1,#00a5b3)}
+    .tile.fixed-tile {background:linear-gradient(#29b5fb,#007ce3);box-shadow:0 5px 0 #075ea6ad,0 8px 12px #1b5c9944;}
+    .tile.selected-tile { outline:6px solid #ffbe21; outline-offset:2px;filter:brightness(1.06); }
+    .tile.in-slot {cursor:pointer}
+    .tile.ghosted {opacity:.34}
+    .feedback {width:100%;min-height:clamp(24px,3.5vh,44px);display:flex;justify-content:center;align-items:center;font-size:clamp(14px,min(1.5vw,2.5vh),25px);font-weight:900;text-align:center;line-height:1.15;}
+    .feedback[data-type="error"]{color:#c43453}.feedback[data-type="warning"]{color:#b57a09}.feedback[data-type="success"]{color:#06895b}
+    .bank {width:100%;padding:clamp(8px,1.4vh,20px) 8px;border:3px solid #d0efff;border-radius:clamp(20px,2.8vw,38px);background:linear-gradient(#effaff,#e6f7ff);display:grid;grid-template-columns:repeat(5,var(--tile));grid-template-rows:repeat(2,var(--tile));gap:var(--gap);justify-content:space-evenly;align-items:center;flex:0 0 auto;}
+    .bank-space {width:var(--tile);height:var(--tile);}
+    .actions {display:flex;gap:clamp(10px,1.4vw,22px);width:100%;flex:0 0 auto;}
+    .action {flex:1;min-width:0;height:clamp(51px,9vh,100px);border:clamp(3px,.29vw,5px) solid white;border-radius:999px;color:white;text-shadow:0 2px 2px #0002;font-size:clamp(18px,min(2.1vw,3.4vh),34px);font-weight:900;box-shadow:0 6px 0 #123b6655,0 9px 15px #1735543d;display:flex;justify-content:center;align-items:center;gap:clamp(6px,1vw,14px);transition:transform .12s;}
+    .action:active{transform:translateY(5px);box-shadow:0 1px 0 #123b6655}
+    .action svg {width:1.15em;height:1.15em;flex:0 0 auto;stroke:currentColor;stroke-width:2.9;stroke-linecap:round;stroke-linejoin:round;fill:none;}
+    .finish-btn{background:linear-gradient(#ff6471,#f52546)}.check-btn{background:linear-gradient(#65db25,#0eaf19)}.next-btn{background:linear-gradient(#3bc3ff,#0286dd)}
+    .modal-backdrop {position:absolute;inset:0;background:#12315195;backdrop-filter:blur(7px);z-index:20;display:flex;align-items:center;justify-content:center;padding:2.3vh 16px;}
+    .modal-panel {background:#fff;border:clamp(4px,.4vw,7px) solid #b9e5fc;border-radius:clamp(24px,3vw,42px);box-shadow:0 12px 40px #06294377;width:min(760px,94vw);max-height:94dvh;overflow:auto;padding:clamp(14px,2.4vh,28px) clamp(18px,2.2vw,35px);}
+    .modal-heading {display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:clamp(8px,1.3vh,18px);}
+    .modal-heading h2 {margin:0;font-size:clamp(25px,2.8vw,40px);line-height:1.2;}
+    .close-button {width:clamp(48px,5.4vh,64px);height:clamp(48px,5.4vh,64px);flex:0 0 auto;border-radius:50%;border:3px solid #9ac8e8;background:#e4f4ff;color:var(--navy);font-size:clamp(26px,2.8vw,38px);font-weight:900;}
+    .setting-row {padding:clamp(8px,1.18vh,14px) 0;border-top:3px solid #d5eef9;}
+    .setting-label {display:block;font-size:clamp(18px,min(1.8vw,2.5vh),24px);font-weight:900;margin-bottom:clamp(8px,1.05vh,14px);}
+    .option-grid {display:grid;gap:clamp(6px,.75vw,12px);grid-template-columns:repeat(var(--count),minmax(0,1fr));}
+    .opt {background:#fff;border:3px solid #d4dfe8;border-radius:999px;color:#102a47;min-height:clamp(47px,5.8vh,66px);padding:4px 6px;display:flex;gap:7px;justify-content:center;align-items:center;font-size:clamp(13px,min(1.48vw,2.05vh),21px);line-height:1.05;font-weight:900;white-space:nowrap;}
+    .opt[aria-pressed="true"] {border-color:#009ce8;background:linear-gradient(#f2fcff,#caefff);color:#075891;box-shadow:0 3px 0 #69cef2;}
+    .opt:disabled {opacity:.35;cursor:not-allowed;}
+    .flag-basque {width:29px;height:20px;flex:0 0 29px;display:inline-block;border-radius:3px;border:1px solid #8caba9;background:linear-gradient(37deg,transparent 44%,white 44%,white 50%,transparent 50%),linear-gradient(-37deg,transparent 44%,white 44%,white 50%,transparent 50%),linear-gradient(90deg,transparent 43%,#0b7f42 43%,#0b7f42 57%,transparent 57%),linear-gradient(0deg,transparent 39%,#0b7f42 39%,#0b7f42 61%,transparent 61%),#df183a;}
+    .flag-emoji {font-size:clamp(21px,2vw,27px);line-height:1;}
+    .setting-tools {display:flex;justify-content:flex-end;padding:8px 0;}
+    .fullscreen-btn {min-height:46px;border:2px solid #b9dfea;border-radius:16px;padding:7px 13px;color:#0b5685;background:#f0faff;font-size:clamp(15px,1.35vw,19px);font-weight:900;}
+    .save-btn {width:100%;height:clamp(60px,8.3vh,92px);border-radius:999px;border:4px solid #fff;background:linear-gradient(#24d847,#00aa2e);color:white;font-weight:900;font-size:clamp(23px,2.7vw,35px);text-shadow:0 2px 2px #0002;box-shadow:0 6px 0 #168b4099;}
+    .finish-panel {text-align:center;max-width:600px;}
+    .trophy {font-size:clamp(64px,9vh,115px);}
+    .finish-title {font-size:clamp(28px,3vw,46px);font-weight:900;margin:5px 0 15px;}
+    .finish-desc {font-size:clamp(19px,2vw,27px);margin:0 0 15px;}
+    .final-score {font-size:clamp(37px,5vw,68px);font-weight:900;color:#d9940b;background:#fffae4;border:3px solid #ffe49a;border-radius:24px;padding:12px;margin:12px 0 22px;}
+    .final-score small {display:block;font-size:.42em;color:#906b1a;}
+    .drag-ghost {position:fixed;pointer-events:none;z-index:40;will-change:transform;box-shadow:0 12px 28px #20456066;transform:scale(1.1);opacity:.93;}
+    canvas#confetti-layer {position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:25;}
+    /* El juego debe estar completo en una pantalla horizontal de PDI. */
+    @media (max-height:670px) and (min-width:701px) {
+      :root {--tile:clamp(46px,min(7.1vw,9vh),84px);--gap:5px}
+      .shell-header {top:1%;height:10vh}
+      .game-screen {top:13.2%;bottom:1.1%}
+      .game-card {padding:7px 16px;gap:2px}
+      .bank {padding:5px}
+      .feedback {min-height:20px}
+      .action{height:9vh}
+      .modal-panel {padding:10px 22px}
+      .setting-row{padding:5px 0}
+      .setting-label {margin-bottom:5px}
+    }
+    @media (max-width:700px) and (orientation:portrait) {
+      body {overflow:auto} .stage {min-height:720px;height:100dvh;overflow:auto}
+      .shell-header {top:10px;width:96%;height:66px}
+      .header-brand{font-size:17px;white-space:normal}
+      .score-pill{font-size:17px;height:40px;padding:0 6px}
+      .round-control{height:43px;width:43px}
+      .game-screen{width:96%;top:93px;bottom:20px;height:auto}
+      .game-card{padding:12px 7px;gap:8px}
+      :root{--tile:clamp(49px,16vw,75px);--gap:3px}
+      .slots{gap:4px} .bank{padding:8px 1px;justify-content:space-evenly}
+      .tile{font-size:30px} .instruction{font-size:16px}
+      .actions{gap:6px}.action{font-size:18px}
+      .hero-title{font-size:clamp(32px,8vw,54px)}
+      .modal-panel{max-height:92dvh}.option-grid{gap:5px}.opt{font-size:12px;min-height:45px}
+    }
+    @media(prefers-reduced-motion:reduce) {*,*::before,*::after{animation:none!important;transition:none!important;}}
+  </style>
+</head>
+<body>
+<div id="app" class="stage">
+  <svg class="landscape" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+    <defs>
+      <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#2bbaf5"/><stop offset=".58" stop-color="#a6eaff"/><stop offset="1" stop-color="#d2f7b3"/></linearGradient>
+      <linearGradient id="hill" x2="0" y2="1"><stop stop-color="#b1ec45"/><stop offset="1" stop-color="#45b940"/></linearGradient>
+      <g id="cloud" fill="#fff" opacity=".92"><ellipse cx="0" cy="25" rx="104" ry="28"/><circle cx="-56" cy="5" r="39"/><circle cx="5" cy="-10" r="56"/><circle cx="55" cy="11" r="37"/></g>
+      <g id="flower"><path d="M0 0L0 45" stroke="#2b9b48" stroke-width="5"/><g fill="white" stroke="#d2ebd8" stroke-width="1.5"><ellipse cy="-15" rx="9" ry="17"/><ellipse cy="15" rx="9" ry="17"/><ellipse cx="15" rx="17" ry="9"/><ellipse cx="-15" rx="17" ry="9"/></g><circle r="9" fill="#ffd33d"/></g>
+    </defs>
+    <rect width="1600" height="900" fill="url(#sky)"/>
+    <use href="#cloud" transform="translate(132 99) scale(.95)"/><use href="#cloud" transform="translate(1400 130) scale(.78)"/><use href="#cloud" transform="translate(345 240) scale(.32)"/><use href="#cloud" transform="translate(1197 278) scale(.35)"/>
+    <g opacity=".66"><path fill="#6fb8df" d="M0 554L150 385 255 494 383 375 550 570z"/><path fill="#5b95c4" d="M1030 574l183-180 99 107 121-139 167 220z"/><path fill="#fff" d="M150 385l-39 45 34-8 20 21 21-16zM1213 394l-42 42 37-8 22 25 16-21z"/></g>
+    <path d="M0 655Q315 535 622 654Q935 535 1210 650Q1403 583 1600 626V900H0Z" fill="#8ade45"/>
+    <path d="M0 760Q395 648 752 770Q1181 625 1600 760V900H0Z" fill="url(#hill)"/>
+    <path d="M0 842Q392 735 817 838Q1194 772 1600 827V900H0Z" fill="#50b742"/>
+    <g fill="#a1d72a" stroke="#448a35" stroke-width="2" opacity=".95"><path d="M0 540L5 285 30 277 42 541" fill="#906037" stroke="none"/><circle cx="12" cy="275" r="92"/><circle cx="72" cy="321" r="72"/><circle cx="-35" cy="341" r="64"/><path d="M1581 492l-11-253 26-8 20 261" fill="#93683e" stroke="none"/><circle cx="1590" cy="215" r="106"/><circle cx="1512" cy="265" r="73"/><circle cx="1650" cy="300" r="88"/></g>
+    <g><use href="#flower" transform="translate(63 797) scale(.75)"/><use href="#flower" transform="translate(418 845) scale(.8)"/><use href="#flower" transform="translate(1215 840) scale(.95)"/><use href="#flower" transform="translate(1500 817) scale(.85)"/><use href="#flower" transform="translate(1391 865) scale(.5)"/></g>
+    <g fill="#2f9e42" opacity=".6"><path d="M380 900q-17-41-55-50 41 2 55 25 9-30 27-42-17 37-27 67zM1150 900q-16-43-49-51 34-5 49 24 13-44 39-54-24 42-39 81zM1560 900q-22-51-60-56 48-7 60 26 12-49 41-62-31 50-41 92z"/></g>
+  </svg>
+
+
+  <header class="shell-header" aria-label="Barra del juego">
+    <button id="home-btn" class="round-control" type="button" aria-label="Inicio" title="Inicio" hidden>
+      <svg viewBox="0 0 24 24"><path d="m3 11 9-8 9 8M5 10v11h14V10M10 21v-7h4v7"/></svg>
+    </button>
+    <div id="header-brand" class="header-brand">Series Matemáticas</div>
+    <div class="header-buttons">
+      <div id="score-pill" class="score-pill" aria-label="Puntos" hidden>
+        <svg viewBox="0 0 24 24"><path d="m12 2 3.1 6.5 7.2 1.1-5.2 5.1 1.3 7.2L12 18.4l-6.4 3.5 1.3-7.2-5.2-5.1 7.2-1.1Z"/></svg>
+        <span id="score-display">0</span>
+      </div>
+      <button id="settings-btn" class="round-control" type="button" aria-label="Opciones" title="Opciones">
+        <svg viewBox="0 0 24 24"><path d="M10 2h4l.6 2.4 2.1.9L19 4l2.8 2.8-1.3 2.3.9 2.1L24 12l-2.6.8-.9 2.1 1.3 2.3L19 20l-2.3-1.3-2.1.9L14 22h-4l-.6-2.4-2.1-.9L5 20l-2.8-2.8 1.3-2.3-.9-2.1L0 12l2.6-.8.9-2.1-1.3-2.3L5 4l2.3 1.3 2.1-.9Z" transform="translate(1.5 1.4) scale(.88)"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <section id="start-screen" class="hero" aria-label="Pantalla de inicio">
+    <h1 id="home-title" class="hero-title">Series<br>Matemáticas</h1>
+    <button id="play-btn" class="hero-play" type="button" aria-label="Empezar" title="Empezar"><span aria-hidden="true">▶</span></button>
+    <div class="hero-digits" aria-hidden="true"><span>1</span><span>2</span><span>3</span></div>
+  </section>
+
+  <main id="game-screen" class="game-screen" hidden>
+    <div class="game-card">
+      <p class="instruction"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M9 11V4a2 2 0 0 1 4 0v7-2a2 2 0 0 1 4 0v3a2 2 0 0 1 4 0v4c0 3-2 5-5 5h-4c-2 0-3-1-5-4l-4-5a2 2 0 0 1 3-3z"/></svg><span data-i18n="instruction">Arrastra o toca los números que faltan:</span></p>
+      <div id="progress-dots" class="progress" hidden aria-label="Progreso"></div>
+      <div id="slots" class="slots" aria-label="Serie numérica"></div>
+      <div id="feedback" class="feedback" role="status" aria-live="polite" data-type=""></div>
+      <div id="bank" class="bank" aria-label="Números"></div>
+      <div class="actions">
+        <button id="finish-btn" class="action finish-btn" type="button"><svg viewBox="0 0 24 24"><path d="M5 22V3m0 2c5-3 8 3 15 0v11c-7 3-10-3-15 0"/></svg><span data-i18n="finish">Terminar</span></button>
+        <button id="check-btn" class="action check-btn" type="button"><svg viewBox="0 0 24 24"><path d="m4 12 5 5 11-11"/></svg><span data-i18n="check">Comprobar</span></button>
+        <button id="next-btn" class="action next-btn" type="button" hidden><svg viewBox="0 0 24 24"><path d="M4 12h16m-7-7 7 7-7 7"/></svg><span data-i18n="next">Siguiente</span></button>
+      </div>
+    </div>
+  </main>
+
+  <div id="settings-modal" class="modal-backdrop" hidden>
+    <section class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="settings-heading">
+      <div class="modal-heading"><h2 id="settings-heading" data-i18n="settings">⚙️ Opciones</h2><button id="close-settings" class="close-button" type="button" aria-label="Cerrar">×</button></div>
+      <div class="setting-row"><label class="setting-label" data-i18n="language">🌐 Idioma</label><div id="language-options" class="option-grid" style="--count:3">
+        <button class="opt" data-group="language" data-value="es" aria-pressed="true"><span class="flag-emoji">🇪🇸</span>Español</button>
+        <button class="opt" data-group="language" data-value="eu" aria-pressed="false"><span class="flag-basque" aria-hidden="true"></span>Euskara</button>
+        <button class="opt" data-group="language" data-value="en" aria-pressed="false"><span class="flag-emoji">🇬🇧</span>English</button>
+      </div></div>
+      <div class="setting-row"><label class="setting-label" data-i18n="length">▱ Longitud de la serie</label><div id="length-options" class="option-grid" style="--count:4">
+        <button class="opt" data-group="length" data-value="2">2</button><button class="opt" data-group="length" data-value="3">3</button><button class="opt" data-group="length" data-value="4">4</button><button class="opt" data-group="length" data-value="5">5</button>
+      </div></div>
+      <div class="setting-row"><label class="setting-label" data-i18n="direction">↕ Dirección de la serie</label><div class="option-grid" style="--count:2">
+        <button class="opt" data-group="direction" data-value="asc" data-i18n="ascending">Ascendente (+)</button><button class="opt" data-group="direction" data-value="desc" data-i18n="descending">Descendente (−)</button>
+      </div></div>
+      <div class="setting-row"><label class="setting-label" data-i18n="step">↗ Salto de números</label><div class="option-grid" style="--count:2">
+        <button class="opt" data-group="step" data-value="1" data-i18n="step1">De 1 en 1 (+1)</button><button class="opt" data-group="step" data-value="2" data-i18n="step2">De 2 en 2 (+2)</button>
+      </div></div>
+      <div class="setting-row"><label class="setting-label" data-i18n="mode">♧ Modo de juego</label><div class="option-grid" style="--count:3">
+        <button class="opt" data-group="mode" data-value="free" data-i18n="free">Libre</button><button class="opt" data-group="mode" data-value="5" data-i18n="five">5 preg.</button><button class="opt" data-group="mode" data-value="10" data-i18n="ten">10 preg.</button>
+      </div></div>
+      <div class="setting-tools"><button id="fullscreen-btn" class="fullscreen-btn" type="button" data-i18n="fullscreen">⛶ Pantalla completa</button></div>
+      <button id="save-settings" class="save-btn" type="button" data-i18n="save">✓ Guardar</button>
+    </section>
+  </div>
+
+  <div id="finish-modal" class="modal-backdrop" hidden>
+    <section class="modal-panel finish-panel" role="dialog" aria-modal="true" aria-labelledby="finish-heading">
+      <div class="trophy" aria-hidden="true">🏆</div>
+      <h2 id="finish-heading" class="finish-title" data-i18n="gameover">¡Juego terminado!</h2>
+      <p class="finish-desc" data-i18n="welldone">¡Has completado las series! ¡Buen trabajo!</p>
+      <div class="final-score"><small data-i18n="finalscore">Puntuación final</small><span id="final-score">0</span></div>
+      <button id="restart-btn" class="save-btn" type="button" data-i18n="restart">↻ Volver a empezar</button>
+    </section>
+  </div>
+  <canvas id="confetti-layer" aria-hidden="true"></canvas>
+</div>
+<script>
+'use strict';
+(() => {
+  const I18N = {
+    es:{ title:'Series Matemáticas',settings:'⚙️ Opciones',language:'🌐 Idioma',length:'▱ Longitud de la serie',direction:'↕ Dirección de la serie',ascending:'Ascendente (+)',descending:'Descendente (−)',step:'↗ Salto de números',step1:'De 1 en 1 (+1)',step2:'De 2 en 2 (+2)',mode:'♧ Modo de juego',free:'Libre',five:'5 preg.',ten:'10 preg.',fullscreen:'⛶ Pantalla completa',exitFullscreen:'⛶ Salir de pantalla completa',save:'✓ Guardar',instruction:'Arrastra o toca los números que faltan:',finish:'Terminar',check:'Comprobar',next:'Siguiente',warning:'⚠️ ¡Completa todas las casillas!',success:'🎉 ¡Excelente! Serie correcta',error:'❌ Hay algún número incorrecto. ¡Inténtalo otra vez!',gameover:'¡Juego terminado!',welldone:'¡Has completado las series! ¡Buen trabajo!',finalscore:'Puntuación final',restart:'↻ Volver a empezar',home:'Inicio',close:'Cerrar',start:'Empezar',points:'Puntos',round:'Ronda',slot:'Casilla',number:'Número',selected:'Seleccionado',bank:'Números',progress:'Progreso',startscreen:'Pantalla de inicio',toolbar:'Barra del juego'},
+    eu:{ title:'Zenbaki-serieak',settings:'⚙️ Aukerak',language:'🌐 Hizkuntza',length:'▱ Seriearen luzera',direction:'↕ Seriearen noranzkoa',ascending:'Goranzkoa (+)',descending:'Beheranzkoa (−)',step:'↗ Zenbakien arteko jauzia',step1:'Banaka (+1)',step2:'Binaka (+2)',mode:'♧ Joko mota',free:'Librea',five:'5 galdera',ten:'10 galdera',fullscreen:'⛶ Pantaila osoa',exitFullscreen:'⛶ Pantaila osotik irten',save:'✓ Gorde',instruction:'Arrastatu edo ukitu falta diren zenbakiak:',finish:'Amaitu',check:'Egiaztatu',next:'Hurrengoa',warning:'⚠️ Bete hutsune guztiak!',success:'🎉 Bikain! Serie zuzena da',error:'❌ Zenbakiren bat oker dago. Saiatu berriro!',gameover:'Jokoa amaitu da!',welldone:'Serieak osatu dituzu! Primeran!',finalscore:'Amaierako puntuazioa',restart:'↻ Berriro hasi',home:'Hasiera',close:'Itxi',start:'Hasi',points:'Puntuak',round:'Txanda',slot:'Laukia',number:'Zenbakia',selected:'Hautatua',bank:'Zenbakiak',progress:'Aurrerapena',startscreen:'Hasierako pantaila',toolbar:'Jokoaren goiko barra'},
+    en:{ title:'Number Sequences',settings:'⚙️ Settings',language:'🌐 Language',length:'▱ Sequence length',direction:'↕ Sequence direction',ascending:'Ascending (+)',descending:'Descending (−)',step:'↗ Number step',step1:'Count by 1 (+1)',step2:'Count by 2 (+2)',mode:'♧ Game mode',free:'Free play',five:'5 questions',ten:'10 questions',fullscreen:'⛶ Full screen',exitFullscreen:'⛶ Exit full screen',save:'✓ Save',instruction:'Drag or tap the missing numbers:',finish:'Finish',check:'Check',next:'Next',warning:'⚠️ Fill all the empty spaces!',success:'🎉 Excellent! Correct sequence',error:'❌ One or more numbers are wrong. Try again!',gameover:'Game finished!',welldone:'You completed the sequences! Great job!',finalscore:'Final score',restart:'↻ Play again',home:'Home',close:'Close',start:'Start',points:'Points',round:'Round',slot:'Slot',number:'Number',selected:'Selected',bank:'Numbers',progress:'Progress',startscreen:'Start screen',toolbar:'Game toolbar'}
+  };
+  const el = id => document.getElementById(id);
+  const CONFIG_KEY='seriesMathConfig';
+  const originalConfig={length:3,direction:'asc',step:1,mode:'free',language:'es'};
+  let config={...originalConfig};
+  try {const old=JSON.parse(localStorage.getItem(CONFIG_KEY)||'null');if(old&&typeof old==='object') {
+    config.length=[2,3,4,5].includes(Number(old.length))?Number(old.length):3;
+    config.direction=['asc','desc'].includes(old.direction)?old.direction:'asc';
+    config.step=[1,2].includes(Number(old.step))?Number(old.step):1;
+    config.mode=['free','5','10'].includes(String(old.mode))?String(old.mode):'free';
+    config.language=I18N[old.language]?old.language:'es';
+    if(config.length===5&&config.step===2)config.step=1;
+  }}catch(e) { /* El navegador puede impedir el almacenamiento sin afectar al juego. */ }
+  let draft={...config};
+  let score=0,round=1,series=[],fixedIndex=-1,available=[],placed={},selected=null,solved=false,started=false;
+  let activeDrag=null,ignoreClickUntil=0,feedbackKey='';
+  const t=(key)=>I18N[config.language]?.[key]||I18N.es[key]||key;
+  let audioCtx=null;
+  function tone(hz,duration=.13,type='sine',offset=0){
+    try {const A=window.AudioContext||window.webkitAudioContext;if(!A)return;
+      if(!audioCtx)audioCtx=new A();if(audioCtx.state==='suspended')audioCtx.resume().catch(()=>{});
+      const o=audioCtx.createOscillator(),g=audioCtx.createGain(),at=audioCtx.currentTime+offset;
+      o.type=type;o.frequency.setValueAtTime(hz,at);g.gain.setValueAtTime(.065,at);
+      g.gain.exponentialRampToValueAtTime(.001,at+duration);o.connect(g);g.connect(audioCtx.destination);o.start(at);o.stop(at+duration+.02);
+    }catch(e) { /* El audio nunca bloqueará el juego. */ }
+  }
+  function successSound(){tone(523,.12,'triangle');tone(659,.12,'triangle',.11);tone(784,.2,'triangle',.23)}
+  function errorSound(){tone(220,.17,'sine');tone(180,.21,'sine',.15)}
+  function setText(){
+    document.documentElement.lang=config.language;document.title=t('title');
+    el('header-brand').textContent=t('title');
+    const title=t('title').split(' ');el('home-title').innerHTML=title.map(s=>escapeHTML(s)).join('<br>');
+    document.querySelectorAll('[data-i18n]').forEach(node=>{node.textContent=t(node.dataset.i18n)});
+    for(const [id,key] of [['home-btn','home'],['settings-btn','settings'],['play-btn','start'],['close-settings','close']]){el(id).setAttribute('aria-label',t(key));el(id).title=t(key)}
+    el('score-pill').setAttribute('aria-label',t('points')+': '+score);
+    document.querySelector('.shell-header').setAttribute('aria-label',t('toolbar'));
+    el('start-screen').setAttribute('aria-label',t('startscreen'));
+    el('bank').setAttribute('aria-label',t('bank'));
+    el('progress-dots').setAttribute('aria-label',t('progress'));
+    if(feedbackKey) el('feedback').textContent=t(feedbackKey);
+    el('fullscreen-btn').textContent=t(document.fullscreenElement?'exitFullscreen':'fullscreen');
+    if(started) {renderSlots();renderBank();updateProgress();}
+  }
+  function escapeHTML(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  function openSettings(){draft={...config};drawSettings();el('settings-modal').hidden=false;el('close-settings').focus();}
+  function closeSettings(){el('settings-modal').hidden=true;setText();el('settings-btn').focus();}
+  function drawSettings(){
+    document.querySelectorAll('.opt[data-group]').forEach(b=>{
+      b.setAttribute('aria-pressed',String(String(draft[b.dataset.group])===b.dataset.value));
+      if(b.dataset.group==='step'&&b.dataset.value==='2') b.disabled=(draft.length===5);
+    });
+  }
+  function persistConfig(){try{localStorage.setItem(CONFIG_KEY,JSON.stringify(config))}catch(e){}}
+  function showStart(){started=false;el('start-screen').hidden=false;el('game-screen').hidden=true;el('home-btn').hidden=true;el('score-pill').hidden=true;el('app').classList.remove('playing');hideFeedback();}
+  function startGame(){started=true;score=0;round=1;el('score-display').textContent=score;el('score-pill').setAttribute('aria-label',t('points')+': 0');el('start-screen').hidden=true;el('game-screen').hidden=false;el('home-btn').hidden=false;el('score-pill').hidden=false;el('app').classList.add('playing');initRound();}
+  function generateSeries(){ // Mantiene los criterios de creación del juego original.
+    const len=config.length,step=config.step,asc=config.direction==='asc';
+    const starts=[];
+    for(let start=0;start<=10;start++){
+      const s=Array.from({length:len},(_,i)=>start+(asc?1:-1)*i*step);
+      if(!s.every(n=>n>=0&&n<=10))continue;
+      if(s.includes(0)&&s.indexOf(0)!==0)continue;
+      if(s.length>=3&&s[2]===1)continue;
+      if(s.includes(10)&&s.indexOf(10)!==len-1)continue;
+      if(s[0]===9)continue;
+      starts.push(s);
+    }
+    return starts[Math.floor(Math.random()*starts.length)]||[1,2,3];
+  }
+  function shuffle(array){
+    for(let i=array.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[array[i],array[j]]=[array[j],array[i]]}return array;
+  }
+  function initRound(){
+    solved=false;selected=null;series=generateSeries();fixedIndex=Math.floor(Math.random()*config.length);
+    placed={};available=shuffle(Array.from({length:11},(_,i)=>i).filter(n=>n!==series[fixedIndex]));
+    el('check-btn').hidden=false;el('next-btn').hidden=true;
+    hideFeedback();renderSlots();renderBank();updateProgress();
+  }
+  function hideFeedback(){feedbackKey='';el('feedback').textContent='';el('feedback').dataset.type='';}
+  function showFeedback(key,type){feedbackKey=key;el('feedback').textContent=t(key);el('feedback').dataset.type=type;}
+  function makeTile(num,inSlot=false,fixed=false){
+    const tile=document.createElement(fixed?'div':'button');
+    if(!fixed)tile.type='button';
+    tile.className='tile'+(inSlot?' in-slot':'')+(fixed?' fixed-tile':'');
+    if(!fixed)tile.dataset.tone=String((num+3)%6);
+    tile.textContent=num;
+    tile.dataset.num=String(num);
+    if(!fixed){tile.setAttribute('aria-label',t('number')+' '+num);
+      if(!inSlot){tile.dataset.source='bank';tile.classList.toggle('selected-tile',selected===num);initPointerDrag(tile,num);}
+    }
+    return tile;
+  }
+  function renderSlots(){
+    const box=el('slots');box.replaceChildren();
+    series.forEach((value,index)=>{
+      const slot=document.createElement('div');slot.className='slot'+(index===fixedIndex?' fixed':'');slot.dataset.index=String(index);
+      slot.setAttribute('aria-label',t('slot')+' '+(index+1)+(index===fixedIndex?': '+value:(placed[index]!==undefined?': '+placed[index]:'')));
+      if(index===fixedIndex){slot.append(makeTile(value,true,true));}
+      else{
+        slot.tabIndex=0;slot.setAttribute('role','button');
+        if(placed[index]!==undefined)slot.append(makeTile(placed[index],true));
+        slot.addEventListener('click',()=>slotAction(index));
+        slot.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();slotAction(index)}});
+      }
+      box.append(slot);
+    });
+  }
+  function renderBank(){
+    const box=el('bank');box.replaceChildren();
+    available.forEach(n=>{
+      if(Object.values(placed).includes(n)){
+        const spacer=document.createElement('div');spacer.className='bank-space';spacer.setAttribute('aria-hidden','true');box.append(spacer);
+      }else{
+        const tile=makeTile(n);tile.addEventListener('click',()=>{
+          if(performance.now()<ignoreClickUntil||solved)return;
+          selected=selected===n?null:n;renderBank();
+          document.querySelectorAll('.slot:not(.fixed)').forEach(s=>s.classList.toggle('selected-slot',selected!==null));
+        });
+        box.append(tile);
+      }
+    });
+  }
+  function slotAction(index){
+    if(solved)return;
+    if(selected!==null){assignNumber(index,selected);selected=null;}
+    else if(placed[index]!==undefined){delete placed[index];renderSlots();renderBank();tone(385,.045);}
+  }
+  function assignNumber(index,num){
+    if(solved||index===fixedIndex||!available.includes(num))return;
+    for(const key of Object.keys(placed)){if(placed[key]===num)delete placed[key];}
+    placed[index]=num;selected=null;tone(435,.065);renderSlots();renderBank();
+  }
+  function initPointerDrag(tile,num){
+    tile.addEventListener('pointerdown',e=>{
+      if(solved||e.button!==0)return;
+      activeDrag={num,pointer:e.pointerId,x:e.clientX,y:e.clientY,source:tile,ghost:null,moved:false};
+      try{tile.setPointerCapture(e.pointerId)}catch(err){}
+    });
+    tile.addEventListener('pointermove',e=>{
+      const d=activeDrag;if(!d||d.pointer!==e.pointerId||d.source!==tile)return;
+      if(!d.moved&&Math.hypot(e.clientX-d.x,e.clientY-d.y)>9){
+        d.moved=true;const ghost=tile.cloneNode(true);ghost.classList.add('drag-ghost');ghost.classList.remove('selected-tile');
+        ghost.style.width=tile.offsetWidth+'px';ghost.style.height=tile.offsetHeight+'px';d.ghost=ghost;document.body.append(ghost);tile.classList.add('ghosted');
+      }
+      if(d.moved){e.preventDefault();d.ghost.style.left=(e.clientX-tile.offsetWidth/2)+'px';d.ghost.style.top=(e.clientY-tile.offsetHeight/2)+'px';
+        document.querySelectorAll('.slot.highlight').forEach(s=>s.classList.remove('highlight'));
+        const dest=document.elementFromPoint(e.clientX,e.clientY)?.closest('.slot:not(.fixed)');if(dest)dest.classList.add('highlight');
+      }
+    });
+    tile.addEventListener('pointerup',e=>{
+      const d=activeDrag;if(!d||d.pointer!==e.pointerId||d.source!==tile)return;
+      if(d.moved){
+        ignoreClickUntil=performance.now()+350;
+        const dest=document.elementFromPoint(e.clientX,e.clientY)?.closest('.slot:not(.fixed)');
+        cleanDrag();if(dest)assignNumber(Number(dest.dataset.index),num);
+      }else{activeDrag=null;}
+    });
+    tile.addEventListener('pointercancel',()=>cleanDrag());
+  }
+  function cleanDrag(){
+    if(activeDrag?.source)activeDrag.source.classList.remove('ghosted');
+    activeDrag?.ghost?.remove();activeDrag=null;
+    document.querySelectorAll('.slot.highlight').forEach(s=>s.classList.remove('highlight'));
+  }
+  function updateProgress(){
+    const p=el('progress-dots');p.replaceChildren();
+    if(config.mode==='free'){p.hidden=true;return}p.hidden=false;
+    const total=Number(config.mode);
+    for(let i=1;i<=total;i++){const d=document.createElement('span');d.className='progress-dot'+(i<round?' done':i===round?' current':'');p.append(d)}
+    p.setAttribute('aria-label',t('round')+' '+round+'/'+total);
+  }
+  function checkRound(){
+    if(solved)return;
+    const missing=series.some((_,i)=>i!==fixedIndex&&placed[i]===undefined);
+    if(missing){showFeedback('warning','warning');errorSound();return;}
+    const correct=series.every((n,i)=>i===fixedIndex||placed[i]===n);
+    if(!correct){showFeedback('error','error');errorSound();return;}
+    solved=true;score+=10;el('score-display').textContent=score;el('score-pill').setAttribute('aria-label',t('points')+': '+score);
+    showFeedback('success','success');successSound();popConfetti(75);el('check-btn').hidden=true;el('next-btn').hidden=false;
+  }
+  function nextRound(){if(config.mode!=='free'&&round>=Number(config.mode))finishGame();else{round++;initRound()}}
+  function finishGame(){el('final-score').textContent=score+' '+t('points').toLowerCase();el('finish-modal').hidden=false;popConfetti(115);el('restart-btn').focus();}
+  // Animación de papelitos local, sin bibliotecas ni conexiones externas.
+  function popConfetti(count){
+    if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+    const c=el('confetti-layer'),ctx=c.getContext('2d');if(!ctx)return;
+    const rect=c.getBoundingClientRect(),dpr=Math.min(window.devicePixelRatio||1,2);
+    c.width=rect.width*dpr;c.height=rect.height*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+    const colors=['#ffcd37','#30c87b','#1db8f5','#ed5dc4','#805aff','#ff704b'];
+    const particles=Array.from({length:count},()=>({x:rect.width*(.2+.6*Math.random()),y:rect.height*.38,vx:(Math.random()-.5)*12,vy:-6-Math.random()*9,gravity:.23+Math.random()*.13,rot:Math.random()*6,spin:(Math.random()-.5)*.3,size:5+Math.random()*9,color:colors[Math.floor(Math.random()*colors.length)]}));
+    let frames=0;
+    function draw(){ctx.clearRect(0,0,rect.width,rect.height);particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=p.gravity;p.rot+=p.spin;ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.fillStyle=p.color;ctx.fillRect(-p.size/2,-p.size/4,p.size,p.size/2);ctx.restore()});
+      frames++;if(frames<145)requestAnimationFrame(draw);else ctx.clearRect(0,0,rect.width,rect.height);
+    }requestAnimationFrame(draw);
+  }
+  el('play-btn').addEventListener('click',startGame);
+  el('home-btn').addEventListener('click',showStart);
+  el('settings-btn').addEventListener('click',openSettings);
+  el('close-settings').addEventListener('click',closeSettings);
+  el('settings-modal').addEventListener('click',e=>{if(e.target===el('settings-modal'))closeSettings()});
+  document.querySelectorAll('.opt[data-group]').forEach(btn=>btn.addEventListener('click',()=>{
+    const group=btn.dataset.group;let val=btn.dataset.value;
+    if(group==='length'||group==='step')val=Number(val);
+    draft[group]=val;if(group==='length'&&val===5&&draft.step===2)draft.step=1;
+    drawSettings();
+    // El idioma seleccionado se refleja inmediatamente en la ventana de ajustes.
+    if(group==='language'){
+      const actual=config.language;config.language=draft.language;setText();config.language=actual;
+    }
+  }));
+  el('save-settings').addEventListener('click',()=>{
+    config={...draft};persistConfig();el('settings-modal').hidden=true;
+    setText();if(started)startGame();else showStart();
+  });
+  el('fullscreen-btn').addEventListener('click',async()=>{
+    try {if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch(e){}
+    el('fullscreen-btn').textContent=t(document.fullscreenElement?'exitFullscreen':'fullscreen');
+  });
+  document.addEventListener('fullscreenchange',()=>{el('fullscreen-btn').textContent=t(document.fullscreenElement?'exitFullscreen':'fullscreen')});
+  el('check-btn').addEventListener('click',checkRound);
+  el('next-btn').addEventListener('click',nextRound);
+  el('finish-btn').addEventListener('click',finishGame);
+  el('restart-btn').addEventListener('click',()=>{el('finish-modal').hidden=true;startGame()});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!el('settings-modal').hidden)closeSettings()});
+  setText();showStart();
+  // Útil para las pruebas automatizadas sin interferir con el uso normal.
+  window.__seriesStatus=()=>({config:{...config},score,round,series:[...series],fixedIndex,placed:{...placed},started});
+})();
+</script>
+</body>
+</html>
