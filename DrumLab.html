@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a111e"><title>DrumLab · Afinador inteligente</title>
+<style>
+:root{color-scheme:dark;--bg:#0a111e;--panel:#141f2f;--panel2:#1b2a3d;--stroke:#29384b;--text:#f4f7fa;--muted:#aabaca;--teal:#5bede0;--gold:#fbc878;--red:#ff8589;--blue:#8fc2ff}
+*{box-sizing:border-box}body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;margin:0;background:var(--bg);color:var(--text);font-size:14px}button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.4;cursor:not-allowed}
+.shell{width:min(100%,690px);margin:auto;padding:0 14px 88px}header{background:#0f1928;border-bottom:1px solid var(--stroke);padding:16px 12px;position:sticky;top:0;z-index:5}header>div{max-width:660px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:10px}.logo{font-weight:850;font-size:18px;letter-spacing:-.5px}.sublogo{font-size:11px;color:var(--muted);margin-top:2px}.live{font-size:11px;color:var(--muted);border:1px solid var(--stroke);border-radius:12px;padding:8px;max-width:155px;text-align:center}
+h1,h2,h3,p{margin:0}h2{font-size:15px;letter-spacing:-.2px}h3{font-size:13px}.card{margin-top:13px;background:var(--panel);border:1px solid var(--stroke);border-radius:18px;padding:15px}.row{display:flex;align-items:center;justify-content:space-between;gap:10px}.stack{display:grid;gap:10px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}label{display:grid;gap:5px;font-size:12px;color:var(--muted);font-weight:650}select,input{width:100%;border:1px solid #3a4c61;border-radius:11px;background:#0d1928;color:white;padding:11px 10px;outline:0;min-width:0}input:focus,select:focus{border-color:var(--teal)}.tiny{font-size:11px;color:var(--muted);line-height:1.5}.hint{margin-top:9px;color:var(--muted);font-size:12px;line-height:1.5}button{border:1px solid #3d5167;border-radius:11px;background:#1c3045;padding:10px 12px;color:white;font-weight:750}button.primary{background:var(--teal);border-color:var(--teal);color:#08202a}button.secondary{color:var(--teal)}button.small{padding:7px 10px;font-size:12px}button.warn{color:var(--red);border-color:#66434c}button.selected{border-color:var(--teal);background:#194c4a}.bar{display:flex;gap:8px}.bar>*{flex:1}.status{border-radius:13px;background:#0f1c2b;border:1px solid #334459;padding:13px;margin-top:12px;line-height:1.5;min-height:75px}.status.good{border-color:#3c9e8b;background:#0e3231}.status.caution{border-color:#ac7f3c;background:#302a20}.status.bad{border-color:#a85d65;background:#33232c}.status strong{display:block;font-size:17px;margin-bottom:2px}.headerlabel{font-size:11px;text-transform:uppercase;letter-spacing:1px;font-weight:850;color:var(--teal)}.hero{font-size:52px;letter-spacing:-2.6px;font-weight:900;line-height:1.1;margin:6px 0}.hero small{font-weight:650;font-size:16px;color:var(--muted);letter-spacing:0}.accent{color:var(--teal)}.stats{display:flex;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:12px}.stats b{color:#fff}.chip{display:inline-block;border:1px solid var(--stroke);border-radius:50px;padding:6px 9px;font-size:11px;background:#102034;color:var(--muted)}.chip.ok{color:var(--teal);border-color:#397e78}.tag{font-size:12px;color:var(--blue);font-weight:800}.head{margin:5px auto;display:block;width:min(100%,350px);aspect-ratio:1;touch-action:manipulation}.progress{height:7px;background:#0b1725;border-radius:10px;overflow:hidden;flex:1}.progress>div{height:100%;width:0%;background:var(--teal);transition:width .15s}.pace{color:var(--muted);font-size:12px}.section{border-top:1px solid var(--stroke);margin-top:13px;padding-top:13px}.measure-guide{font-size:12px;color:var(--muted);margin-top:7px;line-height:1.6}.legend{display:flex;justify-content:space-evenly;font-size:11px;color:var(--muted);gap:8px;flex-wrap:wrap}.dot{width:9px;height:9px;display:inline-block;border-radius:50%;margin-right:3px}.dot.green{background:var(--teal)}.dot.yellow{background:var(--gold)}.dot.red{background:var(--red)}.dot.grey{background:#536679}#spectrum{width:100%;height:145px;background:#0b1726;border-radius:12px;border:1px solid var(--stroke);display:block;margin-top:12px}.modes{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}.modes td,.modes th{padding:8px 3px;border-bottom:1px solid var(--stroke);text-align:left;font-size:12px}.modes th{color:var(--muted)}.hidden{display:none!important}details{margin-top:12px}summary{cursor:pointer;font-weight:800;color:var(--teal);padding:6px}footer{padding:25px 6px;font-size:11px;color:#8297ab;line-height:1.5;text-align:center}.banner{background:#2b291b;border:1px solid #6b5d2d;color:#ffe3aa;border-radius:10px;padding:9px 12px;font-size:12px;margin-top:13px}.meter{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}.full{width:100%}.muted{color:var(--muted)}.center{text-align:center}.buttons{display:flex;gap:8px;flex-wrap:wrap}.buttons>*{flex:1 1 120px}.oktxt{color:var(--teal)}.slow{color:var(--gold)}.errtxt{color:var(--red)}.big-index{font-size:16px;font-weight:850}input[type=checkbox]{width:auto;accent-color:var(--teal);transform:scale(1.12)}.check{display:flex;align-items:center;gap:9px;line-height:1.5}.nowrap{white-space:nowrap}.step{font-size:11px;color:var(--blue);font-weight:750}
+@media(min-width:600px){.widegrid{display:grid;grid-template-columns:1fr 1fr;align-items:start;gap:14px}.widegrid .card{margin-top:13px}}@media(max-width:350px){.hero{font-size:43px}.card{padding:12px}}
+</style>
+</head><body>
+<header><div><div><div class="logo">◉ DrumLab <span style="color:var(--teal)">TUNE</span></div><div class="sublogo">Diagnóstico de parches · Prototipo de validación v0.1</div></div><div id="audioState" class="live">● Micrófono apagado</div></div></header>
+<div class="shell">
+<div id="demoBanner" class="banner hidden">MODO DEMOSTRACIÓN: señal sintética. No es una medición de un tambor real.</div>
+<div class="card">
+<div class="row"><h2>1 · Preparar tambor</h2><span class="step">CONFIGURACIÓN</span></div>
+<div class="grid" style="margin-top:13px">
+<label>Instrumento<select id="drumType"><option value="tom">Tom / Goliat</option><option value="snare">Caja / redoblante</option><option value="bass">Bombo</option></select></label>
+<label>Diámetro<select id="diameter"></select></label>
+<label>Parche<select id="side"><option value="batter">Batidor</option><option value="resonant">Resonante / bordonero</option></select></label>
+<label>Tornillos<select id="lugCount"><option value="4">4 tornillos</option><option value="5">5 tornillos</option><option value="6">6 tornillos</option><option value="8" selected>8 tornillos</option><option value="10">10 tornillos</option><option value="12">12 tornillos</option></select></label>
+<label>Afinación<select id="style"><option value="low">Grave / abierta</option><option value="medium" selected>Media / versátil</option><option value="high">Aguda / tensa</option></select></label>
+<label>Objetivo<select id="targetMode"><option value="preset">Hz orientativos</option><option value="match">Igualar tornillos</option><option value="manual">Hz manuales</option></select></label>
+</div>
+<div class="grid" style="margin-top:10px;align-items:end"><label>Hz junto al tornillo<input type="number" id="targetHz" inputmode="decimal" min="35" max="1000" step="0.5"></label><div><span id="targetLabel" class="tiny">Referencia orientativa, no frecuencia central.</span></div></div>
+<div class="hint" id="prepNote">Para medir tornillos, amortigua el otro parche y desactiva los bordones.</div>
+</div>
+<div class="widegrid">
+<div class="card">
+<div class="row"><h2>2 · Escuchar</h2><span id="captureLabel" class="chip">Esperando</span></div>
+<div class="bar" style="margin-top:12px"><button id="micButton" class="primary">🎙 Activar micrófono</button><button id="demoButton" class="small">Probar demo</button></div>
+<div class="status" id="mainStatus" aria-live="polite"><strong>Preparado para escuchar</strong>Activa el micrófono y toca suavemente junto al tornillo señalado.</div>
+<div class="center" style="margin-top:16px"><div class="headerlabel" id="measureTitle">Tornillo 1 · 0/2 golpes</div><div class="hero" id="reading">— <small>Hz</small></div><div class="stats" style="justify-content:center"><span>Nota <b id="note">—</b></span><span>Confianza <b id="confidence">—</b></span><span>Desviación <b id="deviation">—</b></span></div></div>
+<div class="section row"><span class="pace" id="progressLabel">0/8 tornillos medidos</span><div class="progress"><div id="progressBar"></div></div></div>
+<div class="buttons" style="margin-top:12px"><button id="retryBtn" class="small">↻ Repetir tornillo</button><button id="prevBtn" class="small">← Anterior</button><button id="nextBtn" class="small">Siguiente →</button></div>
+<p class="measure-guide">Coloca el teléfono estable, sin moverlo entre golpes. Golpea con la baqueta unos <b>2–3 cm desde el aro</b>, justo frente al tornillo resaltado. Da dos golpes suaves, dejando que el parche resuene.</p>
+</div>
+<div class="card">
+<div class="row"><h2>3 · Mapa de tensores</h2><span id="selectedLabel" class="tag">Tornillo 1</span></div>
+<canvas id="drumMap" class="head" width="700" height="700" role="img" aria-label="Mapa circular de tornillos; toca uno para seleccionarlo"></canvas>
+<div class="legend"><span><i class="dot green"></i> Correcto</span><span><i class="dot yellow"></i> Apretar</span><span><i class="dot red"></i> Aflojar</span><span><i class="dot grey"></i> Sin medir</span></div>
+<div class="section buttons"><button id="centerBtn" class="small secondary">◎ Comprobar centro</button><button id="finishBtn" class="small secondary">Analizar conjunto</button></div>
+<p class="hint">El centro se evalúa por separado: su frecuencia no debe confundirse con la frecuencia medida junto a cada tornillo.</p>
+</div>
+</div>
+<div class="card" id="diagnosisCard"><div class="row"><h2>4 · Diagnóstico y corrección</h2><span id="diagnosisStatus" class="chip">Sin datos</span></div><div class="status" id="diagnosis"><strong>Sin diagnóstico todavía</strong>Después de las primeras mediciones aparecerá aquí una recomendación basada en cada tornillo.</div><div class="hint" id="overallHint">Nunca se recomienda un número exacto de vueltas sin comprobar cómo responde físicamente el tambor.</div>
+<div class="buttons" style="margin-top:12px"><button id="refreshBtn" class="small">↻ Segunda pasada</button><button id="saveBtn" class="small">↓ Exportar mediciones</button><button id="clearBtn" class="small warn">Borrar lecturas</button></div></div>
+<div class="card"><div class="row"><h2>5 · Resonancias y calidad de señal</h2><button id="toggleAdvanced" class="small secondary">Mostrar espectro</button></div>
+<div id="advanced" class="hidden"><canvas id="spectrum" width="620" height="160"></canvas><table class="modes"><thead><tr><th>Modo observado</th><th>Frecuencia</th><th>Intensidad relativa</th><th>Persistencia</th></tr></thead><tbody id="modeRows"><tr><td colspan="4">Todavía no hay audio analizado.</td></tr></tbody></table><div class="hint" id="audioInfo">Las resonancias de una membrana no siempre forman armónicos enteros de una frecuencia fundamental.</div></div>
+<details><summary>Opciones de medición</summary><div class="stack" style="padding:9px 0"><label class="check"><input type="checkbox" id="twoHits" checked>Confirmación con dos golpes por tornillo</label><label class="check"><input type="checkbox" id="autoNext" checked>Pasar al siguiente tornillo al confirmar</label><p class="tiny">El micrófono debe poder acceder a audio sin reducción de ruido. La exactitud depende del móvil, del ambiente, del parche y de la colocación.</p></div></details>
+</div>
+<footer>DrumLab v0.1 · No representa un afinador calibrado ni sustituye la comprobación auditiva. Guarda datos en este dispositivo y no envía el audio a servidores.</footer>
+</div>
+<script>
+/* DrumLab v0.1 - DSP sin dependencias. Fuente reutilizable para pruebas. */
+(function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;root.DrumDSP=api;})(typeof globalThis!=='undefined'?globalThis:this,function(){
+'use strict';
+const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
+function fft(re,im){
+ const n=re.length;
+ for(let i=1,j=0;i<n;i++){
+   let bit=n>>1;for(;j&bit;bit>>=1)j^=bit;j^=bit;
+   if(i<j){let t=re[i];re[i]=re[j];re[j]=t;t=im[i];im[i]=im[j];im[j]=t;}
+ }
+ for(let len=2;len<=n;len<<=1){const angle=-2*Math.PI/len,cr=Math.cos(angle),ci=Math.sin(angle);
+   for(let i=0;i<n;i+=len){let wr=1,wi=0;for(let j=0;j<len/2;j++){
+    let u=i+j,v=i+j+len/2,tr=re[v]*wr-im[v]*wi,ti=re[v]*wi+im[v]*wr;
+    re[v]=re[u]-tr;im[v]=im[u]-ti;re[u]+=tr;im[u]+=ti;
+    const nw=wr*cr-wi*ci;wi=wr*ci+wi*cr;wr=nw;
+   }}
+ }
+}
+function spectrum(samples,sampleRate,start,n){
+ const re=new Float64Array(n),im=new Float64Array(n);
+ // Hanning + eliminar continua, cero a ambos lados sin escalar el espectro.
+ let mean=0;for(let i=0;i<n;i++)mean+=samples[start+i];mean/=n;
+ for(let i=0;i<n;i++)re[i]=(samples[start+i]-mean)*(0.5-0.5*Math.cos(2*Math.PI*i/(n-1)));
+ fft(re,im);let magnitudes=new Float64Array(n/2);
+ for(let i=0;i<magnitudes.length;i++)magnitudes[i]=Math.hypot(re[i],im[i]);
+ return magnitudes;
+}
+function findPeaks(mag,sampleRate,n,minHz,maxHz){
+ const lo=Math.max(2,Math.ceil(minHz*n/sampleRate)),hi=Math.min(mag.length-3,Math.floor(maxHz*n/sampleRate));
+ const possible=[];let strongest=0;
+ for(let i=lo;i<=hi;i++)strongest=Math.max(strongest,mag[i]);
+ if(!strongest)return [];
+ for(let i=lo;i<=hi;i++){
+  if(!(mag[i]>mag[i-1]&&mag[i]>=mag[i+1]&&mag[i]>=strongest*0.025))continue;
+  // Interpolación parabólica log-magnitud (sin redondear a bins).
+  const a=Math.log(mag[i-1]+1e-12),b=Math.log(mag[i]+1e-12),c=Math.log(mag[i+1]+1e-12);
+  const denom=a-2*b+c;const d=Math.abs(denom)>1e-9?clamp(0.5*(a-c)/denom,-0.5,0.5):0;
+  const hz=(i+d)*sampleRate/n;
+  const strength=mag[i]/strongest;
+  possible.push({hz,relative:strength,db:20*Math.log10(Math.max(strength,1e-8))});
+ }
+ return possible.sort((a,b)=>b.relative-a.relative).slice(0,18);
+}
+function frameRms(p,a,b){let acc=0,k=0;for(let i=a;i<b;i++){acc+=p[i]*p[i];k++;}return Math.sqrt(acc/Math.max(1,k));}
+function analyzeImpact(pcm,sampleRate,opts={}){
+ if(!pcm||!Number.isFinite(sampleRate)||sampleRate<8000)return {ok:false,reason:'Formato de audio no válido'};
+ const mode=opts.mode==='center'?'center':'lug';
+ const target=Number(opts.target)||0;
+ const n=sampleRate>=32000?16384:8192;
+ const beginA=Math.round(sampleRate*0.045),beginB=Math.round(sampleRate*0.185);
+ if(pcm.length<beginB+n)return {ok:false,reason:'Golpe demasiado corto: faltan muestras'};
+ const rms=frameRms(pcm,beginA,Math.min(beginA+n,pcm.length));
+ let clipped=0;for(let i=0;i<pcm.length;i++)if(Math.abs(pcm[i])>=0.985)clipped++;
+ if(rms<0.0015)return {ok:false,reason:'Señal muy débil; acerca el móvil y repite'};
+ if(clipped>pcm.length*0.003)return {ok:false,reason:'Audio saturado; aleja el móvil'};
+ const s1=spectrum(pcm,sampleRate,beginA,n),s2=spectrum(pcm,sampleRate,beginB,n);
+ const min=mode==='center'?38:Math.max(45,opts.minHz||45),max=mode==='center'?600:Math.min(1100,opts.maxHz||1100);
+ const p1=findPeaks(s1,sampleRate,n,min,max),p2=findPeaks(s2,sampleRate,n,min,max);
+ if(!p1.length)return {ok:false,reason:'No se distinguen resonancias; golpea más suavemente'};
+ const candidates=p1.map(a=>{
+  const match=p2.reduce((best,b)=>Math.abs(b.hz-a.hz)<Math.abs((best?.hz??Infinity)-a.hz)?b:best,null);
+  const matched=match && Math.abs(match.hz-a.hz)<Math.max(5,a.hz*0.025);
+  const hz=matched?(a.hz+match.hz)/2:a.hz;
+  const stable=matched?clamp(1-Math.abs(match.hz-a.hz)/Math.max(5,hz*.025),0,1):0;
+  const proximity=target>0?Math.exp(-Math.pow(Math.log2(hz/target)/0.40,2)):0.65;
+  // Principalmente energía y persistencia; sesgo al objetivo en modo tornillo.
+  const strength=Math.sqrt(a.relative*(matched?match.relative:a.relative));
+  const ranking=(mode==='lug'&&target>0?0.39*proximity:0.18*proximity)+0.33*strength+0.28*stable+
+    (mode==='center'?0.21*Math.exp(-hz/270):0);
+  return {hz,db:a.db,relative:a.relative,stable,matched:!!matched,ranking};
+ }).sort((a,b)=>b.ranking-a.ranking);
+ const chosen=candidates[0];
+ const tooFar=target>0&&mode==='lug'&&Math.abs(Math.log2(chosen.hz/target))>Math.log2(1.48);
+ const clarity=chosen.relative;
+ const score=clamp(0.20+0.29*chosen.stable+0.21*clarity+(target>0?0.14*Math.exp(-Math.pow(Math.log2(chosen.hz/target)/.45,2)):0.09),0,0.95);
+ const confidence=tooFar?Math.min(score,.43):(!chosen.matched?Math.min(score,.49):score);
+ const endRms=frameRms(pcm,Math.max(0,pcm.length-Math.round(.09*sampleRate)),pcm.length);
+ const startRms=frameRms(pcm,Math.round(.06*sampleRate),Math.round(.15*sampleRate));
+ const decayDb=20*Math.log10((endRms+1e-8)/(startRms+1e-8));
+ return {ok:true,hz:chosen.hz,confidence,clipped:false,rms,mode,decayDb,
+   ambiguous:confidence<0.55||tooFar,
+   peaks:candidates.slice().sort((a,b)=>b.relative-a.relative).slice(0,7).map(({hz,db,relative,stable})=>({hz,db,relative,stable})),
+   reason:tooFar?'Resonancia lejos del objetivo; comprobar el pico manualmente':(!chosen.matched?'Resonancia poco estable entre ventanas':null)
+ };
+}
+function cents(hz,target){return hz>0&&target>0?1200*Math.log2(hz/target):0;}
+function note(hz){if(hz<=0)return '—';const names=['Do','Do♯','Re','Re♯','Mi','Fa','Fa♯','Sol','Sol♯','La','La♯','Si'];let midi=Math.round(69+12*Math.log2(hz/440));return `${names[((midi%12)+12)%12]}${Math.floor(midi/12)-1}`;}
+return {analyzeImpact,fft,spectrum,findPeaks,cents,note};
+});
+
+</script>
+<script>
+'use strict';
+const $=id=>document.getElementById(id),fmt=(n,d=1)=>Number.isFinite(n)?n.toFixed(d):'—';
+const DIAMETERS={tom:[8,10,12,13,14,16,18],snare:[10,12,13,14,15],bass:[16,18,20,22,24,26]};
+// Los valores para snare 14 y bombo siguen tablas públicas de tune-bot.
+// Otras alturas son orientaciones iniciales, no targets universales calibrados.
+const tomFund={8:165,10:131,12:110,13:98,14:87.3,16:65.4,18:55};
+const bassBases={16:[82,123],18:[71,107],20:[64,96],22:[55,82],24:[49,74],26:[45,67]};
+function targetPreset(type,size,side,style){
+ let hz;if(type==='snare'){
+  if(size===14){const pairs={low:[229,343],medium:[252,378],high:[266,398]};hz=pairs[style][side==='batter'?0:1];}
+  else{const ratio=14/size;hz=(side==='batter'?252:378)*ratio*({low:.91,medium:1,high:1.07}[style]);}
+ }else if(type==='bass'){
+  hz=(bassBases[size]||[60,90])[side==='batter'?0:1]*({low:.92,medium:1,high:1.09}[style]);
+ }else{
+  hz=(tomFund[size]||110)*(side==='batter'?1.65:1.82)*({low:.86,medium:1,high:1.13}[style]);
+ }
+ return Math.round(hz);
+}
+const state={type:'tom',size:12,side:'batter',lugs:8,style:'medium',targetMode:'preset',target:182,selected:0,readings:[],center:null,shots:[],last:null,lastPCM:null,demo:false,advanced:false,
+ ctx:null,stream:null,source:null,filter:null,processor:null,mute:null,listening:false,capturing:false,captureChunks:[],captured:0,noiseFloor:.001,prevRms:0,lastImpact:0,busy:false,autoTimer:null,activeToken:0};
+const COLORS={empty:'#536679',ok:'#5bede0',tight:'#ff8589',loose:'#fbc878',selected:'#eafefa'};
+function emit(event,payload={}){
+ try{if(window.Kodular&&typeof window.Kodular.setWebViewString==='function')window.Kodular.setWebViewString(JSON.stringify({event,...payload}));}catch(e){}
+}
+function key(){return `drumlab_v01_${state.type}_${state.size}_${state.side}_${state.lugs}`;}
+function save(){if(state.demo)return;try{localStorage.setItem(key(),JSON.stringify({readings:state.readings,center:state.center,target:state.target,targetMode:state.targetMode,time:Date.now()}));}catch(e){}}
+function load(){state.readings=Array.from({length:state.lugs},()=>null);state.center=null;try{const data=JSON.parse(localStorage.getItem(key())||'null');if(data&&Array.isArray(data.readings)&&data.readings.length===state.lugs){state.readings=data.readings;state.center=data.center||null;}}catch(e){}}
+function clearCapture(){state.shots=[];state.capturing=false;state.captureChunks=[];state.captured=0;state.activeToken++;if(state.autoTimer){clearTimeout(state.autoTimer);state.autoTimer=null;}state.busy=false;}
+function updateConfig(changed){
+ state.type=$('drumType').value;const choices=DIAMETERS[state.type];const old=parseInt($('diameter').value)||0;
+ if(changed==='type'||!choices.includes(old)){
+  const choice=state.type==='tom'?12:state.type==='snare'?14:22;
+  $('diameter').innerHTML=choices.map(s=>`<option value="${s}" ${s===choice?'selected':''}>${s} pulgadas</option>`).join('');
+ }
+ state.size=+$('diameter').value;state.side=$('side').value;state.lugs=+$('lugCount').value;state.style=$('style').value;state.targetMode=$('targetMode').value;
+ if(state.targetMode==='preset'){state.target=targetPreset(state.type,state.size,state.side,state.style);$('targetHz').value=state.target;}
+ else if(state.targetMode==='manual') {state.target=+$('targetHz').value||targetPreset(state.type,state.size,state.side,state.style);}
+ else {state.target=0;$('targetHz').value='';}
+ $('targetHz').disabled=state.targetMode!=='manual';
+ $('targetLabel').textContent=state.targetMode==='preset'?'Punto de partida orientativo. Ajustable en modo manual.':state.targetMode==='match'?'Igualar alrededor de una referencia calculada a partir de las lecturas.':'Objetivo de golpe junto al tornillo (no tono central).';
+ $('prepNote').textContent=state.type==='snare'?`Caja ${state.size}″: libera los bordones; para el parche bordonero, mide con toques muy suaves y respeta el límite del fabricante.`:`${state.type==='bass'?'Bombo':'Tom'} ${state.size}″: amortigua con cuidado el parche opuesto al medir cada tornillo; retira la amortiguación al comprobar el centro.`;
+ if(changed!=='style'&&changed!=='mode'&&changed!=='target'){clearCapture();state.selected=0;load();}
+ if(state.selected>=state.lugs)state.selected=0;
+ render();
+}
+function currentReference(){
+ if(state.targetMode!=='match')return state.target;
+ const nums=state.readings.filter(v=>v&&Number.isFinite(v.hz)).map(v=>v.hz).sort((a,b)=>a-b);
+ if(nums.length===0)return 0;
+ // Mediana evita que un tornillo aislado determine el objetivo.
+ return nums.length%2?nums[Math.floor(nums.length/2)]:(nums[nums.length/2-1]+nums[nums.length/2])/2;
+}
+function stateOf(reading,ref){if(!reading)return 'empty';if(!ref)return 'ok';const difference=reading.hz-ref,margin=Math.max(3,ref*.012);return Math.abs(difference)<=margin?'ok':difference<0?'loose':'tight';}
+function selectLug(index){clearCapture();state.selected=index;render();}
+function drawMap(){
+ const cv=$('drumMap'),c=cv.getContext('2d'),sz=cv.width,cx=sz/2,cy=sz/2,R=267;
+ c.clearRect(0,0,sz,sz);c.fillStyle='#0c1c2d';c.beginPath();c.arc(cx,cy,R+38,0,2*Math.PI);c.fill();c.strokeStyle='#758a9f';c.lineWidth=12;c.stroke();
+ const gradient=c.createRadialGradient(cx-85,cy-100,20,cx,cy,R);gradient.addColorStop(0,'#293a4b');gradient.addColorStop(1,'#101d2e');
+ c.beginPath();c.arc(cx,cy,R,0,2*Math.PI);c.fillStyle=gradient;c.fill();c.strokeStyle='#5a7286';c.lineWidth=5;c.stroke();
+ // radio guía muestra donde golpear cerca del aro.
+ c.beginPath();c.arc(cx,cy,R-57,0,2*Math.PI);c.strokeStyle='#4a677780';c.setLineDash([9,14]);c.lineWidth=2;c.stroke();c.setLineDash([]);
+ let active=state.selected;
+ for(let i=0;i<state.lugs;i++){
+  const a=-Math.PI/2+2*Math.PI*i/state.lugs,x=cx+(R+18)*Math.cos(a),y=cy+(R+18)*Math.sin(a);
+  const reading=state.readings[i],status=stateOf(reading,currentReference());
+  const col=COLORS[status];
+  if(active===i){c.beginPath();c.arc(x,y,41,0,2*Math.PI);c.fillStyle='#fff';c.fill();}
+  c.beginPath();c.arc(x,y,32,0,2*Math.PI);c.fillStyle=col;c.fill();c.lineWidth=4;c.strokeStyle='#101f2a';c.stroke();
+  c.fillStyle=reading?'#091b27':'#eef5ff';c.textAlign='center';c.textBaseline='middle';c.font='bold 24px system-ui';c.fillText(i+1,x,y-2);
+  if(reading){const tx=cx+(R-73)*Math.cos(a),ty=cy+(R-73)*Math.sin(a);c.fillStyle='#dbe7f1';c.font='bold 21px system-ui';c.fillText(`${Math.round(reading.hz)}`,tx,ty);}
+ }
+ const isCenter=active==='center';c.beginPath();c.arc(cx,cy,isCenter?83:75,0,2*Math.PI);c.fillStyle=isCenter?'#194a4a':'#192c42';c.fill();c.lineWidth=isCenter?5:2;c.strokeStyle=isCenter?'#5bede0':'#395367';c.stroke();
+ c.textAlign='center';c.textBaseline='middle';c.fillStyle='#bce1e8';c.font='bold 22px system-ui';c.fillText('CENTRO',cx,cy-18);
+ c.font='bold 29px system-ui';c.fillStyle='#fff';c.fillText(state.center?`${Math.round(state.center.hz)} Hz`:'◎',cx,cy+23);
+ if(active!=='center'){
+  const a=-Math.PI/2+2*Math.PI*active/state.lugs,px=cx+(R-57)*Math.cos(a),py=cy+(R-57)*Math.sin(a);
+  c.beginPath();c.arc(px,py,14,0,2*Math.PI);c.fillStyle='#5bede0';c.fill();c.strokeStyle='#fff';c.lineWidth=3;c.stroke();
+ }
+}
+function render(){
+ const measured=state.readings.filter(Boolean).length,ref=currentReference(),num=state.selected==='center'?null:state.selected;
+ $('selectedLabel').textContent=num===null?'Centro':`Tornillo ${num+1}`;
+ $('measureTitle').textContent=num===null?'MEDICIÓN CENTRAL':`Tornillo ${num+1} · ${state.readings[num]?'✓ confirmado':state.shots.length+'/'+($('twoHits').checked?2:1)+' golpes'}`;
+ $('progressLabel').textContent=`${measured}/${state.lugs} tornillos medidos`;
+ $('progressBar').style.width=(measured/state.lugs*100)+'%';
+ let r=num===null?state.center:state.readings[num];
+ if(r){$('reading').innerHTML=`${fmt(r.hz,1)} <small>Hz</small>`;$('note').textContent=DrumDSP.note(r.hz);$('confidence').textContent=Math.round((r.confidence||0)*100)+'%';$('deviation').textContent=num===null?'Central':ref?`${DrumDSP.cents(r.hz,ref)>0?'+':''}${fmt(DrumDSP.cents(r.hz,ref),0)} cents`:'—';}
+ else if(!state.shots.length){$('reading').innerHTML='— <small>Hz</small>';$('note').textContent='—';$('confidence').textContent='—';$('deviation').textContent='—';}
+ if(state.targetMode==='match')$('targetLabel').textContent=ref?`Mediana actual: ${fmt(ref,1)} Hz. Se recalcula al completar lecturas.`:'Primero mide un tornillo y luego se igualarán todos.';
+ drawMap();diagnose();
+}
+function setStatus(title,body,kind=''){$('mainStatus').className=`status ${kind}`;$('mainStatus').innerHTML=`<strong></strong><span></span>`;$('mainStatus').querySelector('strong').textContent=title;$('mainStatus').querySelector('span').textContent=body;}
+function diagnose(){
+ const ref=currentReference(),pairs=state.readings.map((r,i)=>({r,i})).filter(x=>x.r),n=pairs.length;
+ const box=$('diagnosis');box.className='status';$('diagnosisStatus').textContent=n?`${n}/${state.lugs} medidos`:'Sin datos';
+ if(!n){box.innerHTML='<strong>Sin diagnóstico todavía</strong>Haz dos toques junto al primer tornillo.';return;}
+ if(!ref){box.innerHTML='<strong>Midiendo referencia</strong>Necesito una medición fiable.';return;}
+ const sorted=pairs.map(x=>({...x,diff:x.r.hz-ref})).sort((a,b)=>Math.abs(b.diff)-Math.abs(a.diff));
+ const pending=sorted.filter(x=>stateOf(x.r,ref)!=='ok');const spread=Math.max(...pairs.map(x=>x.r.hz))-Math.min(...pairs.map(x=>x.r.hz));
+ const top=pending[0];let title='',desc='';
+ if(!top){title='✓ Tornillos equilibrados';desc=n<state.lugs?`Los ${n} tornillos medidos están dentro del margen. Faltan ${state.lugs-n}.`:'Las lecturas están equilibradas. Comprueba ahora el golpe central y el sonido real.';box.classList.add('good');}
+ else {title=`${top.diff<0?'↗ Apretar':'↘ Aflojar'} tornillo ${top.i+1}`;desc=`Medido: ${fmt(top.r.hz,1)} Hz; referencia: ${fmt(ref,1)} Hz (${top.diff>0?'+':''}${fmt(top.diff,1)} Hz). Ajusta poco a poco (por ejemplo, 1/16 de vuelta), golpea otra vez y vuelve a revisar. La tensión de otros tornillos también puede cambiar.`;box.classList.add('caution');}
+ box.innerHTML='<strong></strong><span></span>';box.querySelector('strong').textContent=title;box.querySelector('span').textContent=desc;
+ $('overallHint').textContent=`Dispersión observada: ${fmt(spread,1)} Hz entre ${n} tornillos. Margen de comparación: ±${fmt(Math.max(3,ref*.012),1)} Hz. ${n<state.lugs?'Diagnóstico provisional hasta completar el aro.':'Después de corregir, haz otra pasada en estrella.'}`;
+}
+function showAnalysis(res){
+ state.last=res;
+ $('reading').innerHTML=`${fmt(res.hz,1)} <small>Hz</small>`;$('note').textContent=DrumDSP.note(res.hz);
+ $('confidence').textContent=Math.round(res.confidence*100)+'%';const ref=currentReference();$('deviation').textContent=ref?`${fmt(DrumDSP.cents(res.hz,ref),0)} cents`:'—';
+ $('modeRows').innerHTML=(res.peaks||[]).map((p,i)=>`<tr><td>${i+1}</td><td>${fmt(p.hz,1)} Hz</td><td>${fmt(p.db,1)} dB</td><td>${Math.round(p.stable*100)}%</td></tr>`).join('');
+ $('audioInfo').textContent=`RMS ${fmt(res.rms,3)} · Cambio energético aprox. a lo largo del golpe: ${fmt(res.decayDb,1)} dB. Este valor depende de la sala y NO equivale a RT60 calibrado. La frecuencia seleccionada es solo una de las resonancias observadas.`;
+ renderSpectrum(res.peaks||[]);
+}
+function renderSpectrum(peaks){const c=$('spectrum'),g=c.getContext('2d'),w=c.width,h=c.height;g.clearRect(0,0,w,h);g.fillStyle='#0b1726';g.fillRect(0,0,w,h);
+ for(let i=0;i<6;i++){const x=40+i*(w-60)/5;g.strokeStyle='#273e55';g.beginPath();g.moveTo(x,10);g.lineTo(x,h-20);g.stroke();g.fillStyle='#8fa7bb';g.font='11px system-ui';g.fillText(Math.round(45+i*(1100-45)/5)+'Hz',x-8,h-7);}
+ for(const p of peaks){const x=40+(p.hz-45)/(1100-45)*(w-60);if(x<40||x>w)continue;const v=Math.max(0,(p.db+38)/38);g.strokeStyle=p===peaks[0]?'#5bede0':'#8fc2ff';g.lineWidth=5;g.beginPath();g.moveTo(x,h-22);g.lineTo(x,h-22-v*(h-35));g.stroke();}
+}
+function advance(){if(state.selected==='center')return;const i=state.selected;const next=(i+1)%state.lugs;
+ selectLug(next);
+ if(next===0){setStatus('Primera vuelta completada','Revisa el diagnóstico, corrige el tornillo más desviado y realiza una segunda pasada.','good');}
+ else setStatus(`Ahora el tornillo ${next+1}`,'Golpea suavemente dos veces cerca de la marca verde.');
+}
+function acceptImpact(result,source){
+ if(source==='microphone'){state.demo=false;$('demoBanner').classList.add('hidden');}
+ if(!result.ok){setStatus('No se pudo medir',result.reason,'caution');$('captureLabel').textContent='Repetir golpe';return;}
+ showAnalysis(result);
+ if(result.ambiguous||result.confidence<.55){setStatus('Lectura no fiable',result.reason||'Hay varios modos competidores. Repite el golpe y evita ruido de fondo.','caution');$('captureLabel').textContent='Repetir';return;}
+ if(state.selected==='center'){
+  state.center={hz:result.hz,confidence:result.confidence,peaks:result.peaks,when:Date.now()};save();render();setStatus('Frecuencia central detectada',`${fmt(result.hz,1)} Hz · ${DrumDSP.note(result.hz)}. Recuerda que no debe coincidir necesariamente con los Hz junto a los tornillos.`,'good');emit('center',{hz:result.hz,confidence:result.confidence});return;
+ }
+ const needed=$('twoHits').checked?2:1;
+ state.shots.push(result);
+ if(state.shots.length<needed){setStatus('Primer golpe registrado',`${fmt(result.hz,1)} Hz. Repite un golpe suave cerca del mismo tornillo.`,'');$('captureLabel').textContent='Falta otro golpe';render();return;}
+ const a=state.shots[state.shots.length-2],b=result;
+ if(needed===2&&(Math.abs(a.hz-b.hz)>Math.max(5,b.hz*.022))){
+  state.shots=[result];setStatus('Golpes incoherentes',`${fmt(a.hz,1)} y ${fmt(b.hz,1)} Hz. Necesito dos golpes semejantes; repite.`, 'caution');$('captureLabel').textContent='Repetir';render();return;
+ }
+ const hz=needed===1?result.hz:(a.hz+b.hz)/2,conf=needed===1?result.confidence:Math.min(.99,(a.confidence+b.confidence)/2+.08),index=state.selected;
+ state.readings[index]={hz,confidence:conf,when:Date.now()};state.shots=[];save();render();
+ const ref=currentReference(),status=stateOf(state.readings[index],ref);
+ const instruction=status==='loose'?'Conviene apretar ligeramente.':status==='tight'?'Conviene aflojar ligeramente.':'En rango de referencia.';
+ setStatus(`Tornillo ${index+1} confirmado · ${fmt(hz,1)} Hz`,`${instruction} ${state.targetMode==='match'?'Objetivo relativo recalculado.':'Objetivo '+fmt(ref,1)+' Hz.'}`,'good');$('captureLabel').textContent='Confirmado';
+ emit('lug',{index:index+1,hz,confidence:conf,status});
+ if($('autoNext').checked){if(state.autoTimer)clearTimeout(state.autoTimer);const token=state.activeToken;state.autoTimer=setTimeout(()=>{if(token===state.activeToken)advance();},1100);}
+}
+function onAudio(event){if(!state.listening||state.busy)return;
+ const input=event.inputBuffer.getChannelData(0);let sum=0,peak=0;
+ for(let i=0;i<input.length;i++){const v=input[i];sum+=v*v;peak=Math.max(peak,Math.abs(v));}
+ const rms=Math.sqrt(sum/input.length),now=performance.now();
+ if(!state.capturing){
+  // Aprende ruido solo en tramos suaves; evita aprender el ataque.
+  if(rms<Math.max(.025,state.noiseFloor*2))state.noiseFloor=.994*state.noiseFloor+.006*rms;
+  const threshold=Math.max(.0045,state.noiseFloor*4.0);
+  if(now-state.lastImpact>760&&rms>threshold&&rms>state.prevRms*1.5){
+   state.capturing=true;state.captureChunks=[];state.captured=0;state.lastImpact=now;
+   $('captureLabel').textContent='Capturando impacto…';
+  }
+ }
+ if(state.capturing){const cp=new Float32Array(input.length);cp.set(input);state.captureChunks.push(cp);state.captured+=cp.length;
+  const need=Math.ceil(state.ctx.sampleRate*.61);
+  if(state.captured>=need){const pcm=new Float32Array(state.captured);let offset=0;for(const piece of state.captureChunks){pcm.set(piece,offset);offset+=piece.length;}
+   state.capturing=false;state.captureChunks=[];state.captured=0;state.busy=true;
+   const token=state.activeToken,mode=state.selected==='center'?'center':'lug',ref=currentReference();
+   setTimeout(()=>{
+    try{const result=DrumDSP.analyzeImpact(pcm,state.ctx.sampleRate,{mode,target:mode==='center'?0:ref});
+     if(token===state.activeToken&&state.listening){state.lastPCM=pcm;acceptImpact(result,'microphone');}
+    }catch(err){setStatus('Fallo del analizador',String(err?.message||err),'bad');}
+    finally{state.busy=false;}
+   },0);
+  }
+ }
+ state.prevRms=rms;
+}
+async function startMic(){
+ if(state.demo){state.demo=false;state.readings=Array(state.lugs).fill(null);state.center=null;state.shots=[];load();$('demoBanner').classList.add('hidden');render();}
+ if(!navigator.mediaDevices?.getUserMedia){const secure=window.isSecureContext?'':'Necesitas HTTPS o localhost. ';
+  setStatus('Micrófono no disponible',secure+'El navegador o WebViewer no admite getUserMedia. En Kodular podría hacer falta un WebViewer con permiso de audio.','bad');return;}
+ try{
+  const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false,channelCount:1},video:false});
+  const Ctx=window.AudioContext||window.webkitAudioContext;
+  const ctx=new Ctx({latencyHint:'interactive'});await ctx.resume();
+  const source=ctx.createMediaStreamSource(stream),filter=ctx.createBiquadFilter();filter.type='highpass';filter.frequency.value=25;filter.Q.value=.7;
+  const proc=ctx.createScriptProcessor(1024,1,1),mute=ctx.createGain();mute.gain.value=0;
+  proc.onaudioprocess=onAudio;source.connect(filter);filter.connect(proc);proc.connect(mute);mute.connect(ctx.destination);
+  state.ctx=ctx;state.stream=stream;state.source=source;state.filter=filter;state.processor=proc;state.mute=mute;state.listening=true;state.noiseFloor=.001;state.prevRms=0;
+  $('micButton').textContent='■ Apagar micrófono';$('audioState').textContent='● Micrófono activo · '+ctx.sampleRate+' Hz';$('audioState').style.color='#5bede0';$('captureLabel').textContent='Escuchando';
+  setStatus('Escuchando golpes','Toca cerca de la marca verde. Si hay ruido de fondo, acércate al parche.');emit('microphone',{state:'on',sampleRate:ctx.sampleRate});
+ }catch(e){setStatus('No puedo abrir el micrófono',`${e.name||'Error'}: ${e.message||'sin detalles'}. Comprueba permisos Android y origen seguro (HTTPS).`,'bad');emit('error',{type:'microphone',message:String(e.message||e)});}
+}
+async function stopMic(){state.listening=false;clearCapture();try{state.processor?.disconnect();state.filter?.disconnect();state.source?.disconnect();state.mute?.disconnect();state.stream?.getTracks().forEach(t=>t.stop());await state.ctx?.close();}catch(e){}
+ state.ctx=state.stream=state.source=state.filter=state.processor=state.mute=null;
+ $('micButton').textContent='🎙 Activar micrófono';$('audioState').textContent='● Micrófono apagado';$('audioState').style.color='';$('captureLabel').textContent='Desactivado';emit('microphone',{state:'off'});
+}
+function fakeImpact(){
+ if(!state.demo){clearCapture();state.readings=Array(state.lugs).fill(null);state.center=null;state.selected=0;state.shots=[];render();}
+ state.demo=true;$('demoBanner').classList.remove('hidden');
+ // Dos modos inarmónicos y envolvente amortiguada: simulación expresamente etiquetada.
+ const fs=44100,duration=.7,n=Math.floor(fs*duration),pcm=new Float32Array(n),ref=currentReference()||180;
+ let hz=ref*(state.selected==='center'?.62:1+(state.selected%3-1)*.035);
+ for(let i=0;i<n;i++){const t=i/fs,env=Math.exp(-t*8)*(1-Math.exp(-t*160));const transient=.015*Math.exp(-t*115)*Math.sin(2*Math.PI*1320*t);
+  pcm[i]=env*(.35*Math.sin(2*Math.PI*hz*t)+.10*Math.sin(2*Math.PI*hz*1.63*t)+.065*Math.sin(2*Math.PI*hz*2.24*t))+transient;
+ }
+ const res=DrumDSP.analyzeImpact(pcm,fs,{mode:state.selected==='center'?'center':'lug',target:state.selected==='center'?0:ref});
+ acceptImpact(res,'demo');
+}
+function exportJSON(){const record={app:'DrumLab TUNE v0.1',exported:new Date().toISOString(),configuration:{type:state.type,sizeInches:state.size,side:state.side,lugs:state.lugs,style:state.style,targetMode:state.targetMode,targetHz:currentReference()},readings:state.readings,center:state.center,notCalibrated:true,demo:state.demo};const blob=new Blob([JSON.stringify(record,null,2)],{type:'application/json'});const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=`DrumLab_${state.type}_${state.size}_${state.side}.json`;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2500);emit('export',{config:record.configuration,readings:record.readings});}
+function bind(){
+ for(const id of ['drumType','diameter','side','lugCount','style','targetMode'])$(id).addEventListener('change',()=>updateConfig(id==='drumType'?'type':id==='style'?'style':id==='targetMode'?'mode':'config'));
+ $('targetHz').addEventListener('change',()=>{state.targetMode='manual';$('targetMode').value='manual';state.target=Math.max(35,Math.min(1000,parseFloat($('targetHz').value)||180));$('targetHz').value=state.target;clearCapture();render();});
+ $('micButton').onclick=()=>state.listening?stopMic():startMic();$('demoButton').onclick=fakeImpact;
+ $('retryBtn').onclick=()=>{clearCapture();if(state.selected==='center')state.center=null;else state.readings[state.selected]=null;save();render();setStatus('Tornillo reiniciado','Haz dos golpes para sustituir la medición.');};
+ $('prevBtn').onclick=()=>selectLug(state.selected==='center'?state.lugs-1:(state.selected-1+state.lugs)%state.lugs);
+ $('nextBtn').onclick=advance;$('centerBtn').onclick=()=>{selectLug('center');setStatus('Medición central','Retira la amortiguación del parche opuesto. Golpea suavemente en el centro con el tambor montado y resonando libremente.');};
+ $('finishBtn').onclick=()=>{diagnose();$('diagnosisCard').scrollIntoView({behavior:'smooth',block:'start'});};
+ $('refreshBtn').onclick=()=>{clearCapture();state.selected=0;setStatus('Segunda pasada','Vuelve a medir después de ajustar y compara los resultados guardados.');render();};
+ $('saveBtn').onclick=exportJSON;
+ $('clearBtn').onclick=()=>{if(confirm('¿Borrar todas las mediciones del parche seleccionado?')){clearCapture();state.readings=Array(state.lugs).fill(null);state.center=null;save();render();setStatus('Lecturas borradas','Vuelve a empezar con el primer tornillo.');}};
+ $('toggleAdvanced').onclick=()=>{state.advanced=!state.advanced;$('advanced').classList.toggle('hidden',!state.advanced);$('toggleAdvanced').textContent=state.advanced?'Ocultar espectro':'Mostrar espectro';if(state.last)renderSpectrum(state.last.peaks||[]);};
+ $('twoHits').onchange=()=>{clearCapture();render();};
+ $('drumMap').addEventListener('click',e=>{const c=$('drumMap'),r=c.getBoundingClientRect(),x=(e.clientX-r.left)*c.width/r.width-c.width/2,y=(e.clientY-r.top)*c.height/r.height-c.height/2,rr=Math.hypot(x,y);
+  if(rr<105){selectLug('center');setStatus('Golpe central','Retira amortiguación y mide la respuesta global.');return;}
+  if(rr>c.width*.48)return;
+  const angle=Math.atan2(y,x);const zero=(angle+Math.PI/2+2*Math.PI)%(2*Math.PI),index=Math.round(zero/(2*Math.PI)*state.lugs)%state.lugs;selectLug(index);
+ });
+ document.addEventListener('visibilitychange',()=>{if(document.hidden&&state.listening)stopMic();});
+}
+bind();updateConfig('type');setStatus('Preparado para escuchar','Pulsa Activar micrófono y da dos golpes suaves cerca del tornillo señalado.');
+</script>
+</body></html>
